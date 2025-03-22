@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -175,7 +174,7 @@ const testimonials = [
     id: 1,
     name: 'John Doe',
     avatar: 'https://i.pravatar.cc/100?img=1',
-    comment: 'Amazing products and fast shipping! I'm really impressed with the quality and customer service.',
+    comment: 'Amazing products and fast shipping! I\'m really impressed with the quality and customer service.',
     rating: 5,
   },
   {

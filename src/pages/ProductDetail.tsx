@@ -98,7 +98,7 @@ const mockReviews = [
     },
     rating: 5,
     date: '2023-05-15',
-    title: 'Best headphones I've ever owned',
+    title: 'Best headphones I\'ve ever owned',
     comment: 'The sound quality is absolutely amazing. Very comfortable for long listening sessions and the battery life is impressive. Highly recommend!',
     helpful: 24,
     verified: true,
