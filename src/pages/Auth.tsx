@@ -34,9 +34,15 @@ export default function Auth() {
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simulate successful registration
-    toast.success('Account created successfully!');
-    setActiveTab('login');
+    if (userRole === 'vendor') {
+      // For vendors, first redirect them to subscription choice if registering
+      navigate('/vendor/subscription');
+      toast.success('Account created successfully! Choose your subscription plan.');
+    } else {
+      // For customers, just show success and go to login
+      toast.success('Account created successfully!');
+      setActiveTab('login');
+    }
   };
   
   return (
@@ -150,6 +156,12 @@ export default function Auth() {
                     </Button>
                   </div>
                 </div>
+                
+                {userRole === 'vendor' && (
+                  <div className="p-3 border rounded bg-amber-50 text-amber-800 text-sm">
+                    After registration, you'll need to select a subscription plan and set up your store details.
+                  </div>
+                )}
                 
                 <Button type="submit" className="w-full">Create Account</Button>
               </form>

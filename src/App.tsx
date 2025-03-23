@@ -17,6 +17,8 @@ import AdminVendors from "./pages/admin/Vendors";
 import AdminProducts from "./pages/admin/Products";
 import AdminOrders from "./pages/admin/Orders";
 import AdminSettings from "./pages/admin/Settings";
+import AdminCommissions from "./pages/admin/Commissions";
+import AdminSubscriptions from "./pages/admin/Subscriptions";
 
 // Vendor routes
 import VendorDashboard from "./pages/vendor/Dashboard";
@@ -24,6 +26,7 @@ import VendorProducts from "./pages/vendor/Products";
 import VendorOrders from "./pages/vendor/Orders";
 import VendorEarnings from "./pages/vendor/Earnings";
 import VendorSettings from "./pages/vendor/Settings";
+import VendorSubscription from "./pages/vendor/Subscription";
 
 // Customer routes
 import CustomerDashboard from "./pages/customer/Dashboard";
@@ -60,6 +63,8 @@ const App = () => (
           <Route path="/admin/products" element={<AdminProducts />} />
           <Route path="/admin/orders" element={<AdminOrders />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
+          <Route path="/admin/commissions" element={<AdminCommissions />} />
+          <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
           
           {/* Vendor Routes */}
           <Route path="/vendor/dashboard" element={<VendorDashboard />} />
@@ -67,6 +72,7 @@ const App = () => (
           <Route path="/vendor/orders" element={<VendorOrders />} />
           <Route path="/vendor/earnings" element={<VendorEarnings />} />
           <Route path="/vendor/settings" element={<VendorSettings />} />
+          <Route path="/vendor/subscription" element={<VendorSubscription />} />
           <Route path="/vendor/register" element={<Auth />} />
           
           {/* Customer Routes */}
