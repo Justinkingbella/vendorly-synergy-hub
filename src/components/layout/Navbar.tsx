@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { 
   Search, ShoppingCart, User, Menu, X, ChevronDown, 
   Heart, LogIn, CheckCircle
@@ -30,11 +30,6 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const location = useLocation();
-  
-  // Don't show navbar on admin or vendor pages
-  const isAdminOrVendorPage = location.pathname.includes('/admin') || location.pathname.includes('/vendor');
-  if (isAdminOrVendorPage) return null;
   
   // Dummy cart count for demonstration
   const cartItemCount = 3;
