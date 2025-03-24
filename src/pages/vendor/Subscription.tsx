@@ -1,14 +1,30 @@
 
 import React, { useState } from 'react';
-import { Check, CreditCard, AlertCircle, Info, ArrowRight } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { 
+  CreditCard, Check, X, ArrowRight, Calendar, 
+  AlertCircle, CreditCard as CreditCardIcon, Shield
+} from 'lucide-react';
+import VendorLayout from '@/components/layout/VendorLayout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -18,572 +34,460 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import VendorLayout from '@/components/layout/VendorLayout';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useLocation } from 'react-router-dom';
 
-// Mock subscription plans
-const mockPlans = [
+// Mock subscription data
+const currentPlan = {
+  name: 'Premium',
+  price: 99.99,
+  billing: 'monthly',
+  startDate: '2023-11-15',
+  nextBillingDate: '2023-12-15',
+  status: 'Active',
+  features: [
+    'Reduced commission rates (8.5%)',
+    'Advanced analytics',
+    'Priority support',
+    'Featured placement',
+    'Unlimited products',
+    'Promotional banners',
+  ],
+};
+
+// Available plans
+const availablePlans = [
   {
     id: 1,
     name: 'Basic',
-    price: 0,
-    billingCycle: 'monthly',
-    featured: false,
+    price: 29.99,
+    billing: 'monthly',
     features: [
-      'List up to 10 products',
-      'Standard commission rate (15%)',
-      'Basic support',
-      'Standard product visibility'
+      'Standard commission rates (15%)',
+      'Basic analytics',
+      'Email support',
+      'Up to 50 products',
+    ],
+    notIncluded: [
+      'Priority support',
+      'Featured placement',
+      'Advanced analytics',
+      'Reduced commission rates',
     ]
   },
   {
     id: 2,
-    name: 'Professional',
-    price: 29.99,
-    billingCycle: 'monthly',
-    featured: true,
+    name: 'Premium',
+    price: 99.99,
+    billing: 'monthly',
+    popular: true,
     features: [
-      'List up to 100 products',
-      'Reduced commission rate (10%)',
+      'Reduced commission rates (8.5%)',
+      'Advanced analytics',
       'Priority support',
-      'Enhanced product visibility',
-      'Access to promotions'
-    ]
+      'Featured placement',
+      'Unlimited products',
+      'Promotional banners',
+    ],
+    notIncluded: []
   },
   {
     id: 3,
-    name: 'Business',
-    price: 99.99,
-    billingCycle: 'monthly',
-    featured: false,
+    name: 'Enterprise',
+    price: 299.99,
+    billing: 'monthly',
     features: [
+      'Lowest commission rates (5%)',
+      'Full analytics suite',
+      'Dedicated account manager',
+      'Custom integrations',
       'Unlimited products',
-      'Lowest commission rate (7%)',
-      'Premium support with dedicated manager',
-      'Top product visibility',
-      'Custom storefront',
-      'Marketing assistance'
-    ]
+      'Priority placement',
+      'Marketing support',
+    ],
+    notIncluded: []
   }
 ];
 
-// Mock subscription history
-const mockSubscriptionHistory = [
-  {
-    id: 1,
-    plan: 'Professional',
-    startDate: '2023-01-15',
-    endDate: '2023-07-15',
-    amount: 29.99,
-    status: 'active',
-    paymentMethod: 'Visa ending in 4242',
-    invoiceId: 'INV-2023-001'
-  },
-  {
-    id: 2,
-    plan: 'Basic',
-    startDate: '2022-07-15',
-    endDate: '2023-01-14',
-    amount: 0,
-    status: 'expired',
-    paymentMethod: 'N/A',
-    invoiceId: 'INV-2022-045'
-  }
+// Billing history
+const billingHistory = [
+  { id: 'INV-1001', date: '2023-11-15', amount: 99.99, plan: 'Premium', status: 'Paid' },
+  { id: 'INV-1000', date: '2023-10-15', amount: 99.99, plan: 'Premium', status: 'Paid' },
+  { id: 'INV-999', date: '2023-09-15', amount: 99.99, plan: 'Premium', status: 'Paid' },
+  { id: 'INV-998', date: '2023-08-15', amount: 29.99, plan: 'Basic', status: 'Paid' },
+  { id: 'INV-997', date: '2023-07-15', amount: 29.99, plan: 'Basic', status: 'Paid' },
 ];
 
-export default function VendorSubscription() {
-  const { toast } = useToast();
-  const [currentSubscription, setCurrentSubscription] = useState({
-    plan: 'Professional',
-    startDate: '2023-01-15',
-    endDate: '2023-07-15',
-    autoRenew: true,
-    daysLeft: 34, // Mock days left in subscription
-    usageStats: {
-      products: {
-        used: 67,
-        limit: 100
-      }
-    }
-  });
-  const [subscriptionHistory] = useState(mockSubscriptionHistory);
-  const [plans] = useState(mockPlans);
-  const [selectedPlan, setSelectedPlan] = useState(plans[1]); // Default to Professional
+const VendorSubscription = () => {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const isAdminView = searchParams.get('admin_view') === 'true';
+  
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [isUpgradeDialogOpen, setIsUpgradeDialogOpen] = useState(false);
-  const [billingCycle, setBillingCycle] = useState('monthly');
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
-
-  const handleSubscriptionUpdate = () => {
-    // In a real app, this would call an API to update the subscription
+  
+  // Calculate days until next billing
+  const today = new Date();
+  const nextBilling = new Date(currentPlan.nextBillingDate);
+  const daysRemaining = Math.ceil((nextBilling.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const billingCycleLength = 30; // assuming 30-day billing cycle
+  const cycleProgress = 100 - ((daysRemaining / billingCycleLength) * 100);
+  
+  const handlePlanSelect = (planName: string) => {
+    setSelectedPlan(planName);
+    setIsUpgradeDialogOpen(true);
+  };
+  
+  const handleUpgrade = () => {
+    // In a real app, this would process the upgrade
+    console.log(`Upgrading to ${selectedPlan} plan`);
     setIsUpgradeDialogOpen(false);
-    
-    if (selectedPlan.name === currentSubscription.plan) {
-      toast({
-        title: "No Change",
-        description: `You are already on the ${selectedPlan.name} plan.`,
-      });
-      return;
-    }
-    
-    // Simulate upgrade/downgrade
     setIsPaymentDialogOpen(true);
   };
-
-  const handlePaymentSubmit = () => {
+  
+  const handlePaymentSuccess = () => {
     setIsPaymentDialogOpen(false);
     
     toast({
-      title: "Subscription Updated",
-      description: `Your subscription has been updated to ${selectedPlan.name}.`,
-    });
-    
-    // Update the current subscription
-    setCurrentSubscription({
-      ...currentSubscription,
-      plan: selectedPlan.name,
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(new Date().setMonth(new Date().getMonth() + (billingCycle === 'annual' ? 12 : 1))).toISOString().split('T')[0],
-      usageStats: {
-        products: {
-          used: currentSubscription.usageStats.products.used,
-          limit: selectedPlan.name === 'Basic' ? 10 : selectedPlan.name === 'Professional' ? 100 : 999999
-        }
-      }
+      title: "Subscription updated",
+      description: `Your subscription has been updated to the ${selectedPlan} plan.`,
     });
   };
-
-  const toggleAutoRenew = () => {
-    setCurrentSubscription({
-      ...currentSubscription,
-      autoRenew: !currentSubscription.autoRenew
-    });
+  
+  const handleCancelSubscription = () => {
+    // In a real app, this would process the cancellation
+    console.log('Cancelling subscription');
+    setIsCancelDialogOpen(false);
     
     toast({
-      title: currentSubscription.autoRenew ? "Auto-Renewal Disabled" : "Auto-Renewal Enabled",
-      description: currentSubscription.autoRenew 
-        ? "Your subscription will not renew automatically at the end of the billing period." 
-        : "Your subscription will renew automatically at the end of the billing period.",
+      title: "Subscription cancelled",
+      description: "Your subscription has been cancelled. It will remain active until the end of the billing period.",
     });
-  };
-
-  // Calculate the price based on billing cycle
-  const calculatePrice = (basePrice: number, cycle: string) => {
-    if (cycle === 'annual') {
-      // Apply a 20% discount for annual billing
-      return (basePrice * 12 * 0.8).toFixed(2);
-    }
-    return basePrice.toFixed(2);
   };
 
   return (
     <VendorLayout>
-      <div className="container mx-auto py-10 px-4 sm:px-6">
-        <div className="flex flex-col space-y-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Subscription Management</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage your subscription plan and billing details.
-            </p>
-          </div>
-
-          <Tabs defaultValue="current" className="w-full">
-            <TabsList>
-              <TabsTrigger value="current">Current Subscription</TabsTrigger>
-              <TabsTrigger value="plans">Available Plans</TabsTrigger>
-              <TabsTrigger value="history">Billing History</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="current" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
+      <div className="p-6">
+        <h1 className="text-3xl font-bold mb-6">Subscription Management</h1>
+        
+        <div className="mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Current Subscription</CardTitle>
+              <CardDescription>Manage your current subscription plan</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-xl font-bold flex items-center mb-4">
+                    <Badge className="mr-2 bg-purple-100 text-purple-800">{currentPlan.name} Plan</Badge>
+                    <Badge variant="outline" className="ml-auto bg-green-100 text-green-800">{currentPlan.status}</Badge>
+                  </h3>
+                  
+                  <p className="text-2xl font-bold mb-1">${currentPlan.price}/month</p>
+                  <p className="text-sm text-muted-foreground mb-4">Billed monthly</p>
+                  
+                  <div className="space-y-4">
                     <div>
-                      <CardTitle className="text-2xl">
-                        {currentSubscription.plan} Plan
-                      </CardTitle>
-                      <CardDescription>
-                        Expires on {new Date(currentSubscription.endDate).toLocaleDateString()}
-                        {" "}({currentSubscription.daysLeft} days left)
-                      </CardDescription>
-                    </div>
-                    <Badge className={currentSubscription.plan === 'Basic' ? 'bg-gray-500' : 'bg-primary'}>
-                      {currentSubscription.plan}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Subscription Status</span>
-                      <Badge className="bg-green-500">Active</Badge>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Auto Renewal</span>
-                      <Badge variant={currentSubscription.autoRenew ? 'default' : 'outline'}>
-                        {currentSubscription.autoRenew ? 'Enabled' : 'Disabled'}
-                      </Badge>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Billing Cycle</span>
-                      <span>Monthly</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Start Date</span>
-                      <span>{new Date(currentSubscription.startDate).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Renewal Date</span>
-                      <span>{new Date(currentSubscription.endDate).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t space-y-4">
-                    <h3 className="font-medium">Plan Usage</h3>
-                    <div className="space-y-3">
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span>Products</span>
-                          <span>
-                            {currentSubscription.usageStats.products.used} / {currentSubscription.usageStats.products.limit}
-                          </span>
-                        </div>
-                        <Progress 
-                          value={(currentSubscription.usageStats.products.used / currentSubscription.usageStats.products.limit) * 100} 
-                          className="h-2" 
-                        />
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Current billing period</span>
+                        <span>{daysRemaining} days remaining</span>
                       </div>
+                      <Progress value={cycleProgress} className="h-2" />
                     </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="border-t pt-6 flex flex-col sm:flex-row gap-4">
-                  <Button 
-                    variant="outline" 
-                    onClick={toggleAutoRenew}
-                    className={!currentSubscription.autoRenew ? "border-green-500 text-green-500 hover:bg-green-50" : ""}
-                  >
-                    {currentSubscription.autoRenew ? 'Disable Auto-Renewal' : 'Enable Auto-Renewal'}
-                  </Button>
-                  <Button onClick={() => setIsUpgradeDialogOpen(true)}>
-                    Upgrade Plan
-                  </Button>
-                </CardFooter>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Payment Method</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center space-x-4">
-                    <div className="h-12 w-12 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                      <CreditCard className="h-6 w-6" />
-                    </div>
+                    
                     <div>
-                      <p className="font-medium">Visa ending in 4242</p>
-                      <p className="text-sm text-muted-foreground">Expires 12/2024</p>
+                      <p className="text-sm text-muted-foreground mb-1">Next billing date:</p>
+                      <p className="flex items-center">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        {currentPlan.nextBillingDate}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Payment method:</p>
+                      <p className="flex items-center">
+                        <CreditCardIcon className="h-4 w-4 mr-2" />
+                        •••• •••• •••• 4242
+                      </p>
                     </div>
                   </div>
-                </CardContent>
-                <CardFooter className="border-t pt-6">
-                  <Button variant="outline">Update Payment Method</Button>
-                </CardFooter>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="plans" className="space-y-6">
-              <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
-                {plans.map((plan) => (
-                  <Card 
-                    key={plan.id} 
-                    className={`${plan.featured ? 'border-primary' : 'border'} ${plan.name === currentSubscription.plan ? 'bg-muted/50' : ''}`}
-                  >
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle>{plan.name}</CardTitle>
-                          <CardDescription>
-                            {plan.name === currentSubscription.plan ? 'Current Plan' : ''}
-                          </CardDescription>
-                        </div>
-                        {plan.featured && <Badge className="bg-primary">Popular</Badge>}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="mb-4">
-                        <p className="text-3xl font-bold">
-                          ${plan.price}
-                          <span className="text-sm font-normal text-muted-foreground">
-                            /{plan.billingCycle}
-                          </span>
-                        </p>
-                      </div>
-                      <ul className="space-y-2 mb-6">
+                </div>
+                
+                <div>
+                  <p className="text-sm font-medium mb-2">Plan Features:</p>
+                  <ul className="space-y-2 mb-6">
+                    {currentPlan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start">
+                        <Check className="h-4 w-4 mr-2 text-green-500 shrink-0 mt-0.5" />
+                        <span className="text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  
+                  <div className="flex flex-col space-y-2">
+                    <Button asChild>
+                      <DialogTrigger onClick={() => setIsCancelDialogOpen(true)}>
+                        Cancel Subscription
+                      </DialogTrigger>
+                    </Button>
+                    <Button variant="outline" asChild>
+                      <DialogTrigger>Update Payment Method</DialogTrigger>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <Tabs defaultValue="plans" className="mb-6">
+          <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
+            <TabsTrigger value="plans">Available Plans</TabsTrigger>
+            <TabsTrigger value="billing">Billing History</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="plans">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {availablePlans.map((plan) => (
+                <Card 
+                  key={plan.id} 
+                  className={`
+                    ${plan.popular ? 'border-primary' : ''}
+                    ${plan.name === currentPlan.name ? 'bg-muted/50' : ''}
+                  `}
+                >
+                  {plan.popular && (
+                    <Badge className="absolute top-4 right-4 bg-primary">Popular</Badge>
+                  )}
+                  <CardHeader>
+                    <CardTitle>{plan.name}</CardTitle>
+                    <CardDescription>
+                      ${plan.price}/month
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <p className="text-sm font-medium">Features:</p>
+                      <ul className="space-y-2">
                         {plan.features.map((feature, i) => (
                           <li key={i} className="flex items-start">
-                            <Check className="h-4 w-4 mr-2 mt-1 text-green-500" />
-                            <span>{feature}</span>
+                            <Check className="h-4 w-4 mr-2 text-green-500 shrink-0 mt-0.5" />
+                            <span className="text-sm">{feature}</span>
+                          </li>
+                        ))}
+                        {plan.notIncluded && plan.notIncluded.map((feature, i) => (
+                          <li key={i} className="flex items-start text-muted-foreground">
+                            <X className="h-4 w-4 mr-2 shrink-0 mt-0.5" />
+                            <span className="text-sm">{feature}</span>
                           </li>
                         ))}
                       </ul>
-                    </CardContent>
-                    <CardFooter>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    {plan.name === currentPlan.name ? (
+                      <Button className="w-full" disabled>Current Plan</Button>
+                    ) : (
                       <Button 
                         className="w-full" 
-                        variant={plan.name === currentSubscription.plan ? 'outline' : 'default'}
-                        disabled={plan.name === currentSubscription.plan}
-                        onClick={() => {
-                          setSelectedPlan(plan);
-                          setIsUpgradeDialogOpen(true);
-                        }}
+                        variant={plan.name === 'Enterprise' ? 'default' : 'outline'}
+                        onClick={() => handlePlanSelect(plan.name)}
                       >
-                        {plan.name === currentSubscription.plan ? 'Current Plan' : 'Select Plan'}
+                        {plan.price > currentPlan.price ? 'Upgrade' : 'Downgrade'}
                       </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="history" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Billing History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Plan</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Invoice</TableHead>
+                    )}
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="billing">
+            <Card>
+              <CardHeader>
+                <CardTitle>Billing History</CardTitle>
+                <CardDescription>View your past invoices and payment history</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Invoice</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Plan</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {billingHistory.map((invoice) => (
+                      <TableRow key={invoice.id}>
+                        <TableCell className="font-medium">{invoice.id}</TableCell>
+                        <TableCell>{invoice.date}</TableCell>
+                        <TableCell>{invoice.plan}</TableCell>
+                        <TableCell>${invoice.amount.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <Badge className="bg-green-100 text-green-800">
+                            {invoice.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm">
+                            Download
+                          </Button>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {subscriptionHistory.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell>{new Date(item.startDate).toLocaleDateString()}</TableCell>
-                          <TableCell>{item.plan}</TableCell>
-                          <TableCell>${item.amount.toFixed(2)}</TableCell>
-                          <TableCell>
-                            <Badge
-                              className={item.status === 'active' ? 'bg-green-500' : 'bg-gray-500'}
-                            >
-                              {item.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Button variant="link" className="p-0 h-auto">
-                              {item.invoiceId}
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-
-              <div className="flex justify-end">
-                <Button variant="outline">
-                  Download All Invoices
-                </Button>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
-
-      {/* Upgrade Dialog */}
+      
+      {/* Upgrade Plan Dialog */}
       <Dialog open={isUpgradeDialogOpen} onOpenChange={setIsUpgradeDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Change Subscription Plan</DialogTitle>
+            <DialogTitle>
+              {selectedPlan && selectedPlan === 'Basic' ? 'Downgrade to Basic Plan?' : `Upgrade to ${selectedPlan} Plan?`}
+            </DialogTitle>
             <DialogDescription>
-              {selectedPlan && selectedPlan.name !== currentSubscription.plan ? 
-                `Upgrade to the ${selectedPlan.name} plan to get more features and benefits.` : 
-                `Select a new plan to change your subscription.`}
+              {selectedPlan && selectedPlan === 'Basic'
+                ? 'Downgrading will reduce your benefits and increase your commission rate. This change will take effect at the end of your current billing cycle.'
+                : `Upgrading will give you access to more premium features and reduce your commission rate. You'll be charged the prorated difference immediately.`
+              }
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <div className="space-y-4">
-              <div className="grid gap-4">
-                <h3 className="text-lg font-medium">Choose a Plan</h3>
-                <RadioGroup 
-                  defaultValue={selectedPlan.id.toString()} 
-                  onValueChange={(value) => {
-                    const plan = plans.find(p => p.id.toString() === value);
-                    if (plan) setSelectedPlan(plan);
-                  }}
-                >
-                  {plans.map((plan) => (
-                    <div key={plan.id} className="flex items-center space-x-2 border rounded-md p-4">
-                      <RadioGroupItem value={plan.id.toString()} id={`plan-${plan.id}`} />
-                      <Label htmlFor={`plan-${plan.id}`} className="flex-1 flex justify-between">
-                        <div>
-                          <span className="font-medium">{plan.name}</span>
-                          <span className="text-muted-foreground ml-2">
-                            (${plan.price}/{plan.billingCycle})
-                          </span>
-                        </div>
-                        {plan.name === currentSubscription.plan && (
-                          <Badge variant="outline">Current</Badge>
-                        )}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              </div>
-
-              <div className="grid gap-4 mt-6">
-                <h3 className="text-lg font-medium">Billing Cycle</h3>
-                <RadioGroup 
-                  defaultValue={billingCycle} 
-                  onValueChange={setBillingCycle}
-                >
-                  <div className="flex items-center space-x-2 border rounded-md p-4">
-                    <RadioGroupItem value="monthly" id="monthly" />
-                    <Label htmlFor="monthly" className="flex-1">
-                      <div className="font-medium">Monthly</div>
-                      <div className="text-sm text-muted-foreground">
-                        ${selectedPlan.price}/month
-                      </div>
-                    </Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2 border rounded-md p-4">
-                    <RadioGroupItem value="annual" id="annual" />
-                    <Label htmlFor="annual" className="flex-1 flex justify-between">
-                      <div>
-                        <div className="font-medium">Annual</div>
-                        <div className="text-sm text-muted-foreground">
-                          ${calculatePrice(selectedPlan.price, 'annual')}/year (save 20%)
-                        </div>
-                      </div>
-                      <Badge className="bg-green-500">Save 20%</Badge>
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
-
-              {selectedPlan && (
-                <div className="mt-6 p-4 bg-muted rounded-md">
-                  <div className="flex justify-between mb-2">
-                    <span className="font-medium">Total</span>
-                    <span className="font-medium">
-                      ${calculatePrice(selectedPlan.price, billingCycle)}
-                      <span className="text-sm font-normal text-muted-foreground">
-                        /{billingCycle === 'annual' ? 'year' : 'month'}
-                      </span>
-                    </span>
-                  </div>
-                  {selectedPlan.name !== currentSubscription.plan && (
-                    <div className="text-sm flex items-start mt-2">
-                      <Info className="h-4 w-4 mr-2 flex-shrink-0 mt-0.5 text-amber-500" />
-                      <span>
-                        {selectedPlan.price > plans.find(p => p.name === currentSubscription.plan)?.price! 
-                          ? "You'll be charged the difference immediately." 
-                          : "Your current subscription will be prorated when switching plans."}
-                      </span>
-                    </div>
-                  )}
+          
+          <div className="space-y-4 py-4">
+            {selectedPlan && (
+              <div className="border rounded-md p-4">
+                <p className="font-medium mb-1">{selectedPlan} Plan</p>
+                <p className="text-sm text-muted-foreground mb-2">
+                  ${availablePlans.find(p => p.name === selectedPlan)?.price.toFixed(2)}/month
+                </p>
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  New billing date: {nextBilling.toLocaleDateString()}
                 </div>
-              )}
+              </div>
+            )}
+            
+            <div className="flex items-center">
+              <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />
+              <p className="text-sm text-muted-foreground">
+                {selectedPlan && selectedPlan === 'Basic'
+                  ? 'You can upgrade again at any time.'
+                  : 'This will update your subscription immediately.'
+                }
+              </p>
             </div>
           </div>
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+          
+          <DialogFooter>
             <Button variant="outline" onClick={() => setIsUpgradeDialogOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              onClick={handleSubscriptionUpdate}
-              disabled={selectedPlan.name === currentSubscription.plan}
-            >
-              {selectedPlan.name === currentSubscription.plan ? 'Current Plan' : 'Continue'}
+            <Button onClick={handleUpgrade}>
+              Confirm {selectedPlan === 'Basic' ? 'Downgrade' : 'Upgrade'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Payment Dialog */}
-      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+      
+      {/* Cancel Subscription Dialog */}
+      <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm Payment</DialogTitle>
+            <DialogTitle>Cancel Your Subscription?</DialogTitle>
             <DialogDescription>
-              Review your subscription change and confirm payment.
+              We're sorry to see you go. Your subscription will remain active until the end of your current billing period.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <div className="space-y-4">
-              <div className="p-4 bg-muted rounded-md">
-                <h3 className="font-medium mb-2">Order Summary</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>{selectedPlan.name} Plan ({billingCycle})</span>
-                    <span>${calculatePrice(selectedPlan.price, billingCycle)}</span>
-                  </div>
-                  {billingCycle === 'annual' && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Annual Discount</span>
-                      <span>-${(selectedPlan.price * 12 * 0.2).toFixed(2)}</span>
-                    </div>
-                  )}
-                  <div className="border-t pt-2 mt-2">
-                    <div className="flex justify-between font-medium">
-                      <span>Total</span>
-                      <span>${calculatePrice(selectedPlan.price, billingCycle)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 border rounded-md">
-                <h3 className="font-medium mb-2">Payment Method</h3>
-                <div className="flex items-center space-x-3">
-                  <div className="h-8 w-12 bg-gray-100 flex items-center justify-center rounded">
-                    <CreditCard className="h-4 w-4" />
-                  </div>
-                  <div className="text-sm">
-                    <div>Visa ending in 4242</div>
-                    <div className="text-muted-foreground">Expires 12/2024</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-start mt-4 text-sm">
-                <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0 mt-0.5 text-amber-500" />
-                <span>
-                  By clicking "Confirm Payment", you agree to our Terms of Service and authorize us
-                  to charge your payment method for the amount above.
-                </span>
+          
+          <div className="space-y-4 py-4">
+            <div className="border rounded-md p-4">
+              <p className="font-medium mb-1">{currentPlan.name} Plan</p>
+              <p className="text-sm text-muted-foreground mb-2">Active until {currentPlan.nextBillingDate}</p>
+              <div className="flex items-center text-sm">
+                <Check className="h-4 w-4 mr-2 text-green-500" />
+                No further charges will be made
               </div>
             </div>
+            
+            <div className="flex items-center">
+              <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />
+              <p className="text-sm text-muted-foreground">
+                After cancellation, your commission rate will revert to the standard rate of 15%.
+              </p>
+            </div>
           </div>
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCancelDialogOpen(false)}>
+              Keep Subscription
+            </Button>
+            <Button variant="destructive" onClick={handleCancelSubscription}>
+              Cancel Subscription
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Payment Information Dialog */}
+      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Payment Information</DialogTitle>
+            <DialogDescription>
+              Enter your credit card details to complete the subscription update
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="border rounded-md p-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                Payment form would go here with credit card fields
+              </p>
+              <div className="flex justify-center gap-2 mt-4">
+                <div className="w-10 h-6 border rounded flex items-center justify-center">
+                  <span className="text-xs">Visa</span>
+                </div>
+                <div className="w-10 h-6 border rounded flex items-center justify-center">
+                  <span className="text-xs">MC</span>
+                </div>
+                <div className="w-10 h-6 border rounded flex items-center justify-center">
+                  <span className="text-xs">Amex</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center">
+              <Shield className="h-4 w-4 mr-2 text-green-500" />
+              <p className="text-sm text-muted-foreground">
+                Your payment information is securely processed
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
             <Button variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handlePaymentSubmit}>
-              Confirm Payment
+            <Button onClick={handlePaymentSuccess}>
+              Complete Payment
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </VendorLayout>
   );
-}
+};
+
+export default VendorSubscription;

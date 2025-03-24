@@ -1,949 +1,411 @@
 
-import React, { useState } from 'react';
-import { ChevronDown, Filter, Plus, Search, Edit, Trash, ArrowUpDown, Download, FileSpreadsheet, Calculator } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import React from 'react';
 import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+  DollarSign, Percent, Settings, TrendingUp, 
+  Download, ArrowUpRight, Store, PieChart
+} from 'lucide-react';
+import AdminLayout from '@/components/layout/AdminLayout';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import AdminLayout from '@/components/layout/AdminLayout';
+  PieChart as ReChartsPie,
+  Pie,
+  BarChart,
+  Bar,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell
+} from 'recharts';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Mock data for commission rates
-const mockCommissionRates = [
-  {
-    id: 1,
-    category: "Electronics",
-    rate: 12,
-    minAmount: 0,
-    maxAmount: null,
-    effectiveDate: "2023-01-01",
-    isDefault: true
-  },
-  {
-    id: 2,
-    category: "Fashion",
-    rate: 15,
-    minAmount: 0,
-    maxAmount: null,
-    effectiveDate: "2023-01-01",
-    isDefault: false
-  },
-  {
-    id: 3,
-    category: "Home & Garden",
-    rate: 10,
-    minAmount: 0,
-    maxAmount: null,
-    effectiveDate: "2023-01-01",
-    isDefault: false
-  },
-  {
-    id: 4,
-    category: "Beauty & Personal Care",
-    rate: 18,
-    minAmount: 0,
-    maxAmount: null,
-    effectiveDate: "2023-01-01",
-    isDefault: false
-  },
-  {
-    id: 5,
-    category: "Books & Media",
-    rate: 8,
-    minAmount: 0,
-    maxAmount: null,
-    effectiveDate: "2023-01-01",
-    isDefault: false
-  },
-  {
-    id: 6,
-    category: "Premium Vendor Plan",
-    rate: 10,
-    minAmount: 0,
-    maxAmount: null,
-    effectiveDate: "2023-02-15",
-    isDefault: false,
-    appliesTo: "subscription",
-    subscriptionPlan: "Professional"
-  },
-  {
-    id: 7,
-    category: "Business Vendor Plan",
-    rate: 7,
-    minAmount: 0,
-    maxAmount: null,
-    effectiveDate: "2023-02-15",
-    isDefault: false,
-    appliesTo: "subscription",
-    subscriptionPlan: "Business"
-  }
+// Mock commission data
+const commissionByCategory = [
+  { name: 'Electronics', value: 45000, rate: 15 },
+  { name: 'Fashion', value: 28000, rate: 20 },
+  { name: 'Home', value: 15000, rate: 18 },
+  { name: 'Beauty', value: 9000, rate: 22 },
+  { name: 'Books', value: 7000, rate: 12 },
+  { name: 'Other', value: 6000, rate: 20 },
 ];
 
-// Mock data for vendor-specific commission rates
-const mockVendorCommissions = [
-  {
-    id: 1,
-    vendorName: "Premium Electronics",
-    vendorId: 1,
-    rate: 8,
-    reason: "High sales volume partner",
-    effectiveDate: "2023-03-15",
-    expiryDate: "2023-12-31"
-  },
-  {
-    id: 2,
-    vendorName: "Craft Wonders",
-    vendorId: 4,
-    rate: 12,
-    reason: "Promotional partnership",
-    effectiveDate: "2023-04-01",
-    expiryDate: "2023-10-01"
-  }
+const commissionHistory = [
+  { month: 'Jan', earnings: 20000 },
+  { month: 'Feb', earnings: 22000 },
+  { month: 'Mar', earnings: 25000 },
+  { month: 'Apr', earnings: 27000 },
+  { month: 'May', earnings: 30000 },
+  { month: 'Jun', earnings: 28000 },
+  { month: 'Jul', earnings: 32000 },
+  { month: 'Aug', earnings: 35000 },
+  { month: 'Sep', earnings: 38000 },
+  { month: 'Oct', earnings: 42000 },
+  { month: 'Nov', earnings: 45000 },
+  { month: 'Dec', earnings: 50000 },
 ];
 
-// Mock data for commission earnings
-const mockCommissionEarnings = [
-  {
-    id: 1,
-    vendorName: "Premium Electronics",
-    date: "2023-06-01",
-    orderId: "ORD-10056",
-    orderAmount: 499.99,
-    commission: 59.99,
-    status: "paid",
-    rate: 12
-  },
-  {
-    id: 2,
-    vendorName: "Organic Wellness",
-    date: "2023-06-02",
-    orderId: "ORD-10057",
-    orderAmount: 125.50,
-    commission: 18.82,
-    status: "paid",
-    rate: 15
-  },
-  {
-    id: 3,
-    vendorName: "Vintage Treasures",
-    date: "2023-06-03",
-    orderId: "ORD-10058",
-    orderAmount: 350.00,
-    commission: 35.00,
-    status: "paid",
-    rate: 10
-  },
-  {
-    id: 4,
-    vendorName: "Premium Electronics",
-    date: "2023-06-05",
-    orderId: "ORD-10060",
-    orderAmount: 1299.99,
-    commission: 103.99,
-    status: "pending",
-    rate: 8
-  },
-  {
-    id: 5,
-    vendorName: "Modern Home",
-    date: "2023-06-06",
-    orderId: "ORD-10062",
-    orderAmount: 899.50,
-    commission: 89.95,
-    status: "pending",
-    rate: 10
-  }
+const topVendors = [
+  { id: 1, name: 'TechGadgets', totalSales: 150000, commission: 15000, rate: 10 },
+  { id: 2, name: 'FashionHub', totalSales: 120000, commission: 24000, rate: 20 },
+  { id: 3, name: 'HomeDecor', totalSales: 90000, commission: 16200, rate: 18 },
+  { id: 4, name: 'BeautyStore', totalSales: 85000, commission: 17000, rate: 20 },
+  { id: 5, name: 'GadgetWorld', totalSales: 80000, commission: 12000, rate: 15 },
+  { id: 6, name: 'SportsFit', totalSales: 75000, commission: 15000, rate: 20 },
+  { id: 7, name: 'KitchenPlus', totalSales: 70000, commission: 12600, rate: 18 },
+  { id: 8, name: 'BookCorner', totalSales: 65000, commission: 7800, rate: 12 },
 ];
 
-export default function AdminCommissions() {
-  const { toast } = useToast();
-  const [commissionRates, setCommissionRates] = useState(mockCommissionRates);
-  const [vendorCommissions, setVendorCommissions] = useState(mockVendorCommissions);
-  const [earnings, setEarnings] = useState(mockCommissionEarnings);
-  const [activeTab, setActiveTab] = useState("rates");
-  const [isAddRateOpen, setIsAddRateOpen] = useState(false);
-  const [isEditRateOpen, setIsEditRateOpen] = useState(false);
-  const [currentRate, setCurrentRate] = useState<any>(null);
-  const [newRate, setNewRate] = useState({
-    category: "",
-    rate: 10,
-    minAmount: 0,
-    maxAmount: null,
-    effectiveDate: new Date().toISOString().split('T')[0],
-    isDefault: false,
-    appliesTo: "category",
-    subscriptionPlan: ""
-  });
+const commissionRates = [
+  { category: 'Electronics', standardRate: 15, premiumRate: 10, description: 'All electronic devices and gadgets' },
+  { category: 'Fashion', standardRate: 20, premiumRate: 15, description: 'Clothing, shoes, and accessories' },
+  { category: 'Home & Garden', standardRate: 18, premiumRate: 12, description: 'Home decor, furniture, and garden supplies' },
+  { category: 'Beauty', standardRate: 22, premiumRate: 18, description: 'Cosmetics, skincare, and beauty products' },
+  { category: 'Books & Media', standardRate: 12, premiumRate: 8, description: 'Books, e-books, and media content' },
+  { category: 'Sports & Outdoors', standardRate: 20, premiumRate: 15, description: 'Sporting goods and outdoor equipment' },
+  { category: 'Toys & Games', standardRate: 20, premiumRate: 15, description: 'Toys, games, and entertainment' },
+  { category: 'Food & Grocery', standardRate: 15, premiumRate: 10, description: 'Food products and groceries' },
+];
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+
+const AdminCommissions = () => {
+  const [timeRange, setTimeRange] = React.useState('year');
   
-  // Filter states
-  const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [sortConfig, setSortConfig] = useState<{key: string, direction: 'asc' | 'desc'} | null>(null);
-
-  const handleAddRate = () => {
-    if (!newRate.category) {
-      toast({
-        title: "Validation Error",
-        description: "Category/Name is required.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Add new commission rate with a new ID
-    const newId = Math.max(...commissionRates.map(rate => rate.id)) + 1;
-    const rateToAdd = {
-      ...newRate,
-      id: newId
-    };
-
-    setCommissionRates([...commissionRates, rateToAdd]);
-    setIsAddRateOpen(false);
-    
-    // Reset form
-    setNewRate({
-      category: "",
-      rate: 10,
-      minAmount: 0,
-      maxAmount: null,
-      effectiveDate: new Date().toISOString().split('T')[0],
-      isDefault: false,
-      appliesTo: "category",
-      subscriptionPlan: ""
-    });
-
-    toast({
-      title: "Commission Rate Added",
-      description: `New commission rate for "${newRate.category}" has been added successfully.`,
-    });
-  };
-
-  const handleEditRate = () => {
-    if (!currentRate.category) {
-      toast({
-        title: "Validation Error",
-        description: "Category/Name is required.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // If making this the default rate, update other rates to not be default
-    let updatedRates = [...commissionRates];
-    if (currentRate.isDefault) {
-      updatedRates = updatedRates.map(rate => ({
-        ...rate,
-        isDefault: rate.id === currentRate.id
-      }));
-    }
-
-    // Update the current rate
-    updatedRates = updatedRates.map(rate => 
-      rate.id === currentRate.id ? currentRate : rate
-    );
-    
-    setCommissionRates(updatedRates);
-    setIsEditRateOpen(false);
-    
-    toast({
-      title: "Commission Rate Updated",
-      description: `Commission rate for "${currentRate.category}" has been updated successfully.`,
-    });
-  };
-
-  const handleDeleteRate = (id: number) => {
-    // Don't allow deleting the default rate
-    const rateToDelete = commissionRates.find(rate => rate.id === id);
-    
-    if (rateToDelete?.isDefault) {
-      toast({
-        title: "Cannot Delete Default Rate",
-        description: "You cannot delete the default commission rate. Make another rate the default first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setCommissionRates(commissionRates.filter(rate => rate.id !== id));
-    
-    toast({
-      title: "Commission Rate Deleted",
-      description: `Commission rate has been deleted successfully.`,
-    });
-  };
-
-  // Sort function for table columns
-  const requestSort = (key: string) => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
-
-  // Get sorted items based on current sort configuration
-  const getSortedItems = (items: any[]) => {
-    if (!sortConfig) return items;
-    
-    return [...items].sort((a, b) => {
-      if (a[sortConfig.key] < b[sortConfig.key]) {
-        return sortConfig.direction === 'asc' ? -1 : 1;
-      }
-      if (a[sortConfig.key] > b[sortConfig.key]) {
-        return sortConfig.direction === 'asc' ? 1 : -1;
-      }
-      return 0;
-    });
-  };
-
-  // Filter earnings
-  const filteredEarnings = earnings.filter((earning) => {
-    const matchesSearch = 
-      earning.vendorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      earning.orderId.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || earning.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
-
-  // Sort earnings
-  const sortedEarnings = getSortedItems(filteredEarnings);
-
-  // Calculate totals
-  const totalEarnings = filteredEarnings.reduce((sum, earning) => sum + earning.commission, 0);
-  const paidEarnings = filteredEarnings
-    .filter(earning => earning.status === 'paid')
-    .reduce((sum, earning) => sum + earning.commission, 0);
-  const pendingEarnings = filteredEarnings
-    .filter(earning => earning.status === 'pending')
-    .reduce((sum, earning) => sum + earning.commission, 0);
+  // Calculate total commission
+  const totalCommission = commissionByCategory.reduce((sum, item) => sum + item.value, 0);
+  const averageRate = Math.round(
+    commissionByCategory.reduce((sum, item) => sum + (item.value * item.rate), 0) / totalCommission
+  );
 
   return (
     <AdminLayout>
-      <div className="container mx-auto py-10 px-4 sm:px-6">
-        <div className="flex flex-col space-y-6">
-          <div className="flex flex-col md:flex-row justify-between md:items-center space-y-4 md:space-y-0">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Commission Management</h1>
-              <p className="text-muted-foreground mt-1">
-                Set commission rates, manage vendor-specific rates, and track earnings.
-              </p>
-            </div>
-            {activeTab === "rates" && (
-              <Button onClick={() => setIsAddRateOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add New Rate
-              </Button>
-            )}
+      <div className="p-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+          <h1 className="text-3xl font-bold mb-4 md:mb-0">Commission Management</h1>
+          <div className="space-x-2">
+            <Button variant="outline">
+              <Download className="mr-2 h-4 w-4" />
+              Export Report
+            </Button>
+            <Button>
+              <Settings className="mr-2 h-4 w-4" />
+              Commission Settings
+            </Button>
           </div>
-
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList>
-              <TabsTrigger value="rates">Commission Rates</TabsTrigger>
-              <TabsTrigger value="vendor-rates">Vendor Rates</TabsTrigger>
-              <TabsTrigger value="earnings">Earnings</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="rates" className="space-y-4">
-              <Card>
-                <CardContent className="p-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Category/Type</TableHead>
-                        <TableHead>Rate (%)</TableHead>
-                        <TableHead>Min Amount</TableHead>
-                        <TableHead>Max Amount</TableHead>
-                        <TableHead>Effective Date</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {commissionRates.map((rate) => (
-                        <TableRow key={rate.id}>
-                          <TableCell>
-                            <div className="font-medium">{rate.category}</div>
-                            {rate.appliesTo === 'subscription' && (
-                              <div className="text-sm text-muted-foreground">
-                                Subscription: {rate.subscriptionPlan}
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell>{rate.rate}%</TableCell>
-                          <TableCell>${rate.minAmount}</TableCell>
-                          <TableCell>{rate.maxAmount ? `$${rate.maxAmount}` : "No limit"}</TableCell>
-                          <TableCell>{new Date(rate.effectiveDate).toLocaleDateString()}</TableCell>
-                          <TableCell>
-                            {rate.isDefault && (
-                              <Badge className="bg-primary">Default</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end space-x-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  setCurrentRate(rate);
-                                  setIsEditRateOpen(true);
-                                }}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                                onClick={() => handleDeleteRate(rate.id)}
-                              >
-                                <Trash className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="vendor-rates" className="space-y-4">
-              <div className="flex justify-between mb-4">
-                <div className="relative w-full max-w-sm">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Search vendors..."
-                    className="pl-8 w-full"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Vendor Rate
-                </Button>
-              </div>
-
-              <Card>
-                <CardContent className="p-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Vendor</TableHead>
-                        <TableHead>Custom Rate (%)</TableHead>
-                        <TableHead>Reason</TableHead>
-                        <TableHead>Start Date</TableHead>
-                        <TableHead>End Date</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {vendorCommissions.map((commission) => (
-                        <TableRow key={commission.id}>
-                          <TableCell>
-                            <div className="font-medium">{commission.vendorName}</div>
-                          </TableCell>
-                          <TableCell>{commission.rate}%</TableCell>
-                          <TableCell>{commission.reason}</TableCell>
-                          <TableCell>{new Date(commission.effectiveDate).toLocaleDateString()}</TableCell>
-                          <TableCell>{new Date(commission.expiryDate).toLocaleDateString()}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end space-x-2">
-                              <Button variant="ghost" size="sm">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                              >
-                                <Trash className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {vendorCommissions.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={6} className="text-center h-32">
-                            <div className="flex flex-col items-center justify-center">
-                              <p className="text-muted-foreground mb-2">No vendor-specific commission rates found</p>
-                              <Button size="sm" onClick={() => {}}>
-                                <Plus className="w-4 h-4 mr-2" />
-                                Add Vendor Rate
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="earnings" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Total Commissions
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">${totalEarnings.toFixed(2)}</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Paid Commissions
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-green-600">${paidEarnings.toFixed(2)}</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Pending Commissions
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-amber-600">${pendingEarnings.toFixed(2)}</div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="flex flex-col md:flex-row justify-between md:items-center space-y-4 md:space-y-0 mb-4">
-                <div className="relative w-full md:max-w-sm">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Search by vendor or order ID..."
-                    className="pl-8 w-full"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Select 
-                    value={statusFilter} 
-                    onValueChange={setStatusFilter}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="paid">Paid</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="icon">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Export</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem>
-                        <FileSpreadsheet className="mr-2 h-4 w-4" />
-                        Export to CSV
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-
-              <Card>
-                <CardContent className="p-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="cursor-pointer" onClick={() => requestSort('date')}>
-                          <div className="flex items-center">
-                            Date
-                            <ArrowUpDown className="ml-2 h-4 w-4" />
-                          </div>
-                        </TableHead>
-                        <TableHead className="cursor-pointer" onClick={() => requestSort('vendorName')}>
-                          <div className="flex items-center">
-                            Vendor
-                            <ArrowUpDown className="ml-2 h-4 w-4" />
-                          </div>
-                        </TableHead>
-                        <TableHead>Order ID</TableHead>
-                        <TableHead className="cursor-pointer" onClick={() => requestSort('orderAmount')}>
-                          <div className="flex items-center">
-                            Order Amount
-                            <ArrowUpDown className="ml-2 h-4 w-4" />
-                          </div>
-                        </TableHead>
-                        <TableHead>Rate (%)</TableHead>
-                        <TableHead className="cursor-pointer" onClick={() => requestSort('commission')}>
-                          <div className="flex items-center">
-                            Commission
-                            <ArrowUpDown className="ml-2 h-4 w-4" />
-                          </div>
-                        </TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {sortedEarnings.map((earning) => (
-                        <TableRow key={earning.id}>
-                          <TableCell>{new Date(earning.date).toLocaleDateString()}</TableCell>
-                          <TableCell>
-                            <div className="font-medium">{earning.vendorName}</div>
-                          </TableCell>
-                          <TableCell>{earning.orderId}</TableCell>
-                          <TableCell>${earning.orderAmount.toFixed(2)}</TableCell>
-                          <TableCell>{earning.rate}%</TableCell>
-                          <TableCell>${earning.commission.toFixed(2)}</TableCell>
-                          <TableCell>
-                            <Badge 
-                              className={
-                                earning.status === 'paid' 
-                                  ? 'bg-green-500 hover:bg-green-600'
-                                  : 'bg-amber-500 hover:bg-amber-600'
-                              }
-                            >
-                              {earning.status === 'paid' ? 'Paid' : 'Pending'}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {sortedEarnings.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={7} className="text-center h-32">
-                            <div className="flex flex-col items-center justify-center">
-                              <Calculator className="h-12 w-12 text-muted-foreground mb-2 opacity-50" />
-                              <p className="text-muted-foreground">No commission earnings found</p>
-                              <p className="text-sm text-muted-foreground">Try adjusting your filters</p>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-                <CardFooter className="flex items-center justify-between py-4">
-                  <p className="text-sm text-muted-foreground">
-                    Showing <span className="font-medium">{sortedEarnings.length}</span> of{" "}
-                    <span className="font-medium">{earnings.length}</span> entries
-                  </p>
-                  <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm" disabled>
-                      Previous
-                    </Button>
-                    <Button variant="outline" size="sm" disabled>
-                      Next
-                    </Button>
-                  </div>
-                </CardFooter>
-              </Card>
-            </TabsContent>
-          </Tabs>
         </div>
-      </div>
-
-      {/* Add Rate Dialog */}
-      <Dialog open={isAddRateOpen} onOpenChange={setIsAddRateOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Add Commission Rate</DialogTitle>
-            <DialogDescription>
-              Create a new commission rate for products or subscription plans.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <label htmlFor="appliesTo" className="text-sm font-medium">
-                Rate Type
-              </label>
-              <Select
-                value={newRate.appliesTo}
-                onValueChange={(value) => setNewRate({ ...newRate, appliesTo: value })}
-              >
-                <SelectTrigger id="appliesTo">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="category">Product Category</SelectItem>
-                  <SelectItem value="subscription">Subscription Plan</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {newRate.appliesTo === 'subscription' && (
-              <div className="grid gap-2">
-                <label htmlFor="subscriptionPlan" className="text-sm font-medium">
-                  Subscription Plan
-                </label>
-                <Select
-                  value={newRate.subscriptionPlan}
-                  onValueChange={(value) => setNewRate({ ...newRate, subscriptionPlan: value })}
-                >
-                  <SelectTrigger id="subscriptionPlan">
-                    <SelectValue placeholder="Select plan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Basic">Basic</SelectItem>
-                    <SelectItem value="Professional">Professional</SelectItem>
-                    <SelectItem value="Business">Business</SelectItem>
-                  </SelectContent>
-                </Select>
+        
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mb-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Commission Earnings</p>
+                  <h3 className="text-3xl font-bold mt-1">${totalCommission.toLocaleString()}</h3>
+                  <p className="flex items-center text-sm text-green-500 mt-1">
+                    <ArrowUpRight className="h-4 w-4 mr-1" />
+                    +12.5% from last year
+                  </p>
+                </div>
+                <div className="p-2 bg-primary/10 rounded-full">
+                  <DollarSign className="h-6 w-6 text-primary" />
+                </div>
               </div>
-            )}
-
-            <div className="grid gap-2">
-              <label htmlFor="category" className="text-sm font-medium">
-                {newRate.appliesTo === 'subscription' ? 'Rate Name' : 'Category'}
-              </label>
-              <Input
-                id="category"
-                value={newRate.category}
-                onChange={(e) => setNewRate({ ...newRate, category: e.target.value })}
-                placeholder={newRate.appliesTo === 'subscription' ? "e.g. Professional Plan Rate" : "e.g. Electronics"}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <label htmlFor="rate" className="text-sm font-medium">
-                  Commission Rate (%)
-                </label>
-                <Input
-                  id="rate"
-                  type="number"
-                  value={newRate.rate}
-                  onChange={(e) => setNewRate({ ...newRate, rate: parseFloat(e.target.value) })}
-                  min="0"
-                  max="100"
-                  step="0.1"
-                />
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Average Commission Rate</p>
+                  <h3 className="text-3xl font-bold mt-1">{averageRate}%</h3>
+                  <p className="flex items-center text-sm text-green-500 mt-1">
+                    <ArrowUpRight className="h-4 w-4 mr-1" />
+                    +2.3% from last year
+                  </p>
+                </div>
+                <div className="p-2 bg-primary/10 rounded-full">
+                  <Percent className="h-6 w-6 text-primary" />
+                </div>
               </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Active Vendors</p>
+                  <h3 className="text-3xl font-bold mt-1">127</h3>
+                  <p className="flex items-center text-sm text-green-500 mt-1">
+                    <ArrowUpRight className="h-4 w-4 mr-1" />
+                    +8 new vendors this month
+                  </p>
+                </div>
+                <div className="p-2 bg-primary/10 rounded-full">
+                  <Store className="h-6 w-6 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <Tabs defaultValue="overview" className="mb-6">
+          <TabsList className="grid w-full grid-cols-4 md:w-[600px]">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="rates">Commission Rates</TabsTrigger>
+            <TabsTrigger value="vendors">Vendor Commissions</TabsTrigger>
+            <TabsTrigger value="history">Commission History</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Commission Distribution</CardTitle>
+                  <CardDescription>Commission distribution by category</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-80 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={commissionByCategory}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {commissionByCategory.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, 'Commission']} />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle>Commission Earnings</CardTitle>
+                      <CardDescription>Monthly commission earnings</CardDescription>
+                    </div>
+                    <Select value={timeRange} onValueChange={setTimeRange}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select time range" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="month">This Month</SelectItem>
+                        <SelectItem value="quarter">This Quarter</SelectItem>
+                        <SelectItem value="year">This Year</SelectItem>
+                        <SelectItem value="all">All Time</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-80 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={commissionHistory}
+                        margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, 'Commission']} />
+                        <Area 
+                          type="monotone" 
+                          dataKey="earnings" 
+                          stroke="#8884d8" 
+                          fillOpacity={1} 
+                          fill="url(#colorEarnings)" 
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
             
-              <div className="grid gap-2">
-                <label htmlFor="effectiveDate" className="text-sm font-medium">
-                  Effective Date
-                </label>
-                <Input
-                  id="effectiveDate"
-                  type="date"
-                  value={newRate.effectiveDate}
-                  onChange={(e) => setNewRate({ ...newRate, effectiveDate: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <label htmlFor="minAmount" className="text-sm font-medium">
-                  Min Amount ($)
-                </label>
-                <Input
-                  id="minAmount"
-                  type="number"
-                  value={newRate.minAmount}
-                  onChange={(e) => setNewRate({ ...newRate, minAmount: parseFloat(e.target.value) })}
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-              <div className="grid gap-2">
-                <label htmlFor="maxAmount" className="text-sm font-medium">
-                  Max Amount ($)
-                </label>
-                <Input
-                  id="maxAmount"
-                  type="number"
-                  value={newRate.maxAmount || ''}
-                  onChange={(e) => {
-                    const value = e.target.value === '' ? null : parseFloat(e.target.value);
-                    setNewRate({ ...newRate, maxAmount: value });
-                  }}
-                  min="0"
-                  step="0.01"
-                  placeholder="No limit"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="isDefault"
-                checked={newRate.isDefault}
-                onChange={(e) => setNewRate({ ...newRate, isDefault: e.target.checked })}
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <label htmlFor="isDefault" className="text-sm font-medium">
-                Set as default rate
-              </label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddRateOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleAddRate}>
-              Add Rate
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Rate Dialog */}
-      <Dialog open={isEditRateOpen} onOpenChange={setIsEditRateOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit Commission Rate</DialogTitle>
-            <DialogDescription>
-              Update the commission rate details.
-            </DialogDescription>
-          </DialogHeader>
-          {currentRate && (
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <label htmlFor="edit-category" className="text-sm font-medium">
-                  {currentRate.appliesTo === 'subscription' ? 'Rate Name' : 'Category'}
-                </label>
-                <Input
-                  id="edit-category"
-                  value={currentRate.category}
-                  onChange={(e) => setCurrentRate({ ...currentRate, category: e.target.value })}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <label htmlFor="edit-rate" className="text-sm font-medium">
-                    Commission Rate (%)
-                  </label>
-                  <Input
-                    id="edit-rate"
-                    type="number"
-                    value={currentRate.rate}
-                    onChange={(e) => setCurrentRate({ ...currentRate, rate: parseFloat(e.target.value) })}
-                    min="0"
-                    max="100"
-                    step="0.1"
-                  />
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Top Performing Vendors by Commission</CardTitle>
+                <CardDescription>Vendors generating the highest commission revenue</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Vendor</TableHead>
+                      <TableHead>Total Sales</TableHead>
+                      <TableHead>Commission Rate</TableHead>
+                      <TableHead>Commission Earned</TableHead>
+                      <TableHead>Vendor Type</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {topVendors.slice(0, 5).map((vendor) => (
+                      <TableRow key={vendor.id}>
+                        <TableCell className="font-medium">{vendor.name}</TableCell>
+                        <TableCell>${vendor.totalSales.toLocaleString()}</TableCell>
+                        <TableCell>{vendor.rate}%</TableCell>
+                        <TableCell>${vendor.commission.toLocaleString()}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={
+                            vendor.rate < 15 ? 'bg-purple-100 text-purple-800' : 
+                            vendor.rate < 18 ? 'bg-blue-100 text-blue-800' : 
+                            'bg-gray-100 text-gray-800'
+                          }>
+                            {vendor.rate < 15 ? 'Premium' : vendor.rate < 18 ? 'Standard' : 'Basic'}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="rates">
+            <Card>
+              <CardHeader>
+                <CardTitle>Commission Rate Structure</CardTitle>
+                <CardDescription>Current commission rates by category</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Standard Rate</TableHead>
+                      <TableHead>Premium Vendor Rate</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {commissionRates.map((category, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">{category.category}</TableCell>
+                        <TableCell>{category.standardRate}%</TableCell>
+                        <TableCell>{category.premiumRate}%</TableCell>
+                        <TableCell className="max-w-md truncate">{category.description}</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm">
+                            Edit
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="vendors">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Vendor Commission Analytics</CardTitle>
+                  <Button variant="outline" size="sm">
+                    View All Vendors
+                  </Button>
                 </div>
-                <div className="grid gap-2">
-                  <label htmlFor="edit-effectiveDate" className="text-sm font-medium">
-                    Effective Date
-                  </label>
-                  <Input
-                    id="edit-effectiveDate"
-                    type="date"
-                    value={currentRate.effectiveDate}
-                    onChange={(e) => setCurrentRate({ ...currentRate, effectiveDate: e.target.value })}
-                  />
+              </CardHeader>
+              <CardContent>
+                <div className="h-96 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={topVendors}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, 'Amount']} />
+                      <Legend />
+                      <Bar dataKey="totalSales" name="Total Sales" fill="#8884d8" />
+                      <Bar dataKey="commission" name="Commission" fill="#82ca9d" />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <label htmlFor="edit-minAmount" className="text-sm font-medium">
-                    Min Amount ($)
-                  </label>
-                  <Input
-                    id="edit-minAmount"
-                    type="number"
-                    value={currentRate.minAmount}
-                    onChange={(e) => setCurrentRate({ ...currentRate, minAmount: parseFloat(e.target.value) })}
-                    min="0"
-                    step="0.01"
-                  />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="history">
+            <Card>
+              <CardHeader>
+                <CardTitle>Commission History</CardTitle>
+                <CardDescription>Historical data of commission earnings</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-96 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={commissionHistory}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, 'Commission']} />
+                      <Legend />
+                      <Bar dataKey="earnings" name="Commission Earnings" fill="#8884d8" />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
-                <div className="grid gap-2">
-                  <label htmlFor="edit-maxAmount" className="text-sm font-medium">
-                    Max Amount ($)
-                  </label>
-                  <Input
-                    id="edit-maxAmount"
-                    type="number"
-                    value={currentRate.maxAmount || ''}
-                    onChange={(e) => {
-                      const value = e.target.value === '' ? null : parseFloat(e.target.value);
-                      setCurrentRate({ ...currentRate, maxAmount: value });
-                    }}
-                    min="0"
-                    step="0.01"
-                    placeholder="No limit"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="edit-isDefault"
-                  checked={currentRate.isDefault}
-                  onChange={(e) => setCurrentRate({ ...currentRate, isDefault: e.target.checked })}
-                  className="h-4 w-4 rounded border-gray-300"
-                />
-                <label htmlFor="edit-isDefault" className="text-sm font-medium">
-                  Set as default rate
-                </label>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditRateOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleEditRate}>
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </AdminLayout>
   );
-}
+};
+
+export default AdminCommissions;

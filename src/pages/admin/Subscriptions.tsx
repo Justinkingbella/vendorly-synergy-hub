@@ -1,815 +1,419 @@
-
-import React, { useState } from 'react';
-import { Plus, Edit, Trash, Check, X, CreditCard, Tag, DollarSign, LayoutGrid, List } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
 import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+  CreditCard, Users, Store, Plus, Settings, 
+  TrendingUp, ArrowUpRight, Calendar, DollarSign,
+  Check, X
+} from 'lucide-react';
 import AdminLayout from '@/components/layout/AdminLayout';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-// Mock data for subscription plans
-const mockPlans = [
+// Mock subscription data
+const subscriptionPlans = [
   {
     id: 1,
     name: 'Basic',
-    price: 0,
-    billingCycle: 'monthly',
-    featured: false,
-    active: true,
+    price: 29.99,
+    billing: 'monthly',
     features: [
-      'List up to 10 products',
-      'Standard commission rate (15%)',
-      'Basic support',
-      'Standard product visibility'
+      'Standard commission rates',
+      'Basic analytics',
+      'Email support',
+      'Up to 50 products',
     ],
-    vendorCount: 45
+    notIncluded: [
+      'Priority support',
+      'Featured placement',
+      'Advanced analytics',
+      'Reduced commission rates',
+    ]
   },
   {
     id: 2,
-    name: 'Professional',
-    price: 29.99,
-    billingCycle: 'monthly',
-    featured: true,
-    active: true,
+    name: 'Premium',
+    price: 99.99,
+    billing: 'monthly',
+    popular: true,
     features: [
-      'List up to 100 products',
-      'Reduced commission rate (10%)',
+      'Reduced commission rates',
+      'Advanced analytics',
       'Priority support',
-      'Enhanced product visibility',
-      'Access to promotions'
+      'Featured placement',
+      'Unlimited products',
+      'Promotional banners',
     ],
-    vendorCount: 67
+    notIncluded: []
   },
   {
     id: 3,
-    name: 'Business',
-    price: 99.99,
-    billingCycle: 'monthly',
-    featured: false,
-    active: true,
-    features: [
-      'Unlimited products',
-      'Lowest commission rate (7%)',
-      'Premium support with dedicated manager',
-      'Top product visibility',
-      'Custom storefront',
-      'Marketing assistance'
-    ],
-    vendorCount: 23
-  },
-  {
-    id: 4,
     name: 'Enterprise',
     price: 299.99,
-    billingCycle: 'monthly',
-    featured: false,
-    active: false,
+    billing: 'monthly',
     features: [
-      'All Business features',
-      'Custom commission structure',
-      'API access',
-      'White-label options',
+      'Lowest commission rates',
+      'Full analytics suite',
       'Dedicated account manager',
-      'Custom integration support'
+      'Custom integrations',
+      'Unlimited products',
+      'Priority placement',
+      'Marketing support',
     ],
-    vendorCount: 5
+    notIncluded: []
   }
 ];
 
-// Mock data for vendor subscriptions
-const mockVendorSubscriptions = [
-  {
-    id: 1,
-    vendorName: 'Premium Electronics',
-    planName: 'Professional',
-    status: 'active',
-    startDate: '2023-01-15',
-    endDate: '2023-07-15',
-    amount: 29.99,
-    autoRenew: true
-  },
-  {
-    id: 2,
-    vendorName: 'Organic Wellness',
-    planName: 'Business',
-    status: 'active',
-    startDate: '2023-02-10',
-    endDate: '2023-08-10',
-    amount: 99.99,
-    autoRenew: true
-  },
-  {
-    id: 3,
-    vendorName: 'Vintage Treasures',
-    planName: 'Basic',
-    status: 'active',
-    startDate: '2023-03-05',
-    endDate: '2023-09-05',
-    amount: 0,
-    autoRenew: false
-  },
-  {
-    id: 4,
-    vendorName: 'Craft Wonders',
-    planName: 'Professional',
-    status: 'expiring',
-    startDate: '2023-01-22',
-    endDate: '2023-06-22',
-    amount: 29.99,
-    autoRenew: false
-  },
-  {
-    id: 5,
-    vendorName: 'Modern Home',
-    planName: 'Business',
-    status: 'expired',
-    startDate: '2022-11-30',
-    endDate: '2023-05-30',
-    amount: 99.99,
-    autoRenew: false
-  }
+const subscriptionStats = [
+  { plan: 'Basic', count: 85, revenue: 2549.15 },
+  { plan: 'Premium', count: 35, revenue: 3499.65 },
+  { plan: 'Enterprise', count: 7, revenue: 2099.93 },
 ];
 
-export default function AdminSubscriptions() {
-  const { toast } = useToast();
-  const [plans, setPlans] = useState(mockPlans);
-  const [vendorSubscriptions, setVendorSubscriptions] = useState(mockVendorSubscriptions);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [isAddPlanOpen, setIsAddPlanOpen] = useState(false);
-  const [isEditPlanOpen, setIsEditPlanOpen] = useState(false);
-  const [isDeletePlanOpen, setIsDeletePlanOpen] = useState(false);
-  const [currentPlan, setCurrentPlan] = useState<any>(null);
-  const [newPlan, setNewPlan] = useState({
-    name: '',
-    price: 0,
-    billingCycle: 'monthly',
-    featured: false,
-    active: true,
-    features: ['']
-  });
+const monthlySubscriptionData = [
+  { month: 'Jan', Basic: 70, Premium: 20, Enterprise: 5 },
+  { month: 'Feb', Basic: 72, Premium: 22, Enterprise: 5 },
+  { month: 'Mar', Basic: 75, Premium: 25, Enterprise: 5 },
+  { month: 'Apr', Basic: 78, Premium: 28, Enterprise: 6 },
+  { month: 'May', Basic: 80, Premium: 30, Enterprise: 6 },
+  { month: 'Jun', Basic: 82, Premium: 32, Enterprise: 6 },
+  { month: 'Jul', Basic: 85, Premium: 35, Enterprise: 7 },
+];
 
-  const handleAddPlan = () => {
-    if (!newPlan.name) {
-      toast({
-        title: "Validation Error",
-        description: "Plan name is required.",
-        variant: "destructive",
-      });
-      return;
-    }
+const recentSubscriptions = [
+  { id: 'SUB-10521', vendor: 'TechGadgets', plan: 'Premium', date: '2023-12-01', status: 'Active', nextBilling: '2024-01-01', amount: 99.99 },
+  { id: 'SUB-10520', vendor: 'HomeDecor', plan: 'Basic', date: '2023-11-28', status: 'Active', nextBilling: '2023-12-28', amount: 29.99 },
+  { id: 'SUB-10519', vendor: 'FashionHub', plan: 'Enterprise', date: '2023-11-25', status: 'Active', nextBilling: '2023-12-25', amount: 299.99 },
+  { id: 'SUB-10518', vendor: 'GadgetWorld', plan: 'Premium', date: '2023-11-20', status: 'Active', nextBilling: '2023-12-20', amount: 99.99 },
+  { id: 'SUB-10517', vendor: 'BookCorner', plan: 'Basic', date: '2023-11-15', status: 'Expired', nextBilling: '-', amount: 29.99 },
+];
 
-    // Add plan with a new ID
-    const newId = Math.max(...plans.map(plan => plan.id)) + 1;
-    const planToAdd = {
-      ...newPlan,
-      id: newId,
-      vendorCount: 0
-    };
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
 
-    setPlans([...plans, planToAdd]);
-    setIsAddPlanOpen(false);
-    setNewPlan({
-      name: '',
-      price: 0,
-      billingCycle: 'monthly',
-      featured: false,
-      active: true,
-      features: ['']
-    });
+const totalVendors = 127;
+const totalSubscriptionRevenue = subscriptionStats.reduce((sum, item) => sum + item.revenue, 0);
+const totalSubscribers = subscriptionStats.reduce((sum, item) => sum + item.count, 0);
+const subscriptionRate = Math.round((totalSubscribers / totalVendors) * 100);
 
-    toast({
-      title: "Plan Added",
-      description: `"${newPlan.name}" plan has been added successfully.`,
-    });
-  };
-
-  const handleEditPlan = () => {
-    if (!currentPlan.name) {
-      toast({
-        title: "Validation Error",
-        description: "Plan name is required.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setPlans(plans.map(plan => 
-      plan.id === currentPlan.id ? currentPlan : plan
-    ));
-    
-    setIsEditPlanOpen(false);
-    
-    toast({
-      title: "Plan Updated",
-      description: `"${currentPlan.name}" plan has been updated successfully.`,
-    });
-  };
-
-  const handleDeletePlan = () => {
-    // Check if plan has vendors
-    if (currentPlan.vendorCount > 0) {
-      toast({
-        title: "Cannot Delete Plan",
-        description: `${currentPlan.vendorCount} vendors are currently using this plan. Reassign them first.`,
-        variant: "destructive",
-      });
-      setIsDeletePlanOpen(false);
-      return;
-    }
-
-    setPlans(plans.filter(plan => plan.id !== currentPlan.id));
-    setIsDeletePlanOpen(false);
-    
-    toast({
-      title: "Plan Deleted",
-      description: `"${currentPlan.name}" plan has been deleted successfully.`,
-    });
-  };
-
-  const handleFeatureChange = (index: number, value: string) => {
-    if (currentPlan) {
-      const updatedFeatures = [...currentPlan.features];
-      updatedFeatures[index] = value;
-      setCurrentPlan({ ...currentPlan, features: updatedFeatures });
-    } else {
-      const updatedFeatures = [...newPlan.features];
-      updatedFeatures[index] = value;
-      setNewPlan({ ...newPlan, features: updatedFeatures });
-    }
-  };
-
-  const addFeatureField = () => {
-    if (currentPlan) {
-      setCurrentPlan({ 
-        ...currentPlan, 
-        features: [...currentPlan.features, ''] 
-      });
-    } else {
-      setNewPlan({ 
-        ...newPlan, 
-        features: [...newPlan.features, ''] 
-      });
-    }
-  };
-
-  const removeFeatureField = (index: number) => {
-    if (currentPlan) {
-      const updatedFeatures = [...currentPlan.features];
-      updatedFeatures.splice(index, 1);
-      setCurrentPlan({ ...currentPlan, features: updatedFeatures });
-    } else {
-      const updatedFeatures = [...newPlan.features];
-      updatedFeatures.splice(index, 1);
-      setNewPlan({ ...newPlan, features: updatedFeatures });
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { color: string, label: string }> = {
-      active: { color: "bg-green-500 hover:bg-green-600", label: "Active" },
-      expiring: { color: "bg-yellow-500 hover:bg-yellow-600", label: "Expiring Soon" },
-      expired: { color: "bg-red-500 hover:bg-red-600", label: "Expired" },
-      cancelled: { color: "bg-gray-500 hover:bg-gray-600", label: "Cancelled" },
-    };
-
-    const statusInfo = statusMap[status] || { color: "bg-gray-500", label: status };
-
-    return (
-      <Badge className={`${statusInfo.color} text-white`}>
-        {statusInfo.label}
-      </Badge>
-    );
-  };
-
+const AdminSubscriptions = () => {
   return (
     <AdminLayout>
-      <div className="container mx-auto py-10 px-4 sm:px-6">
-        <div className="flex flex-col space-y-6">
-          <div className="flex flex-col md:flex-row justify-between md:items-center space-y-4 md:space-y-0">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Subscription Plans</h1>
-              <p className="text-muted-foreground mt-1">
-                Manage subscription plans and vendor subscriptions.
-              </p>
-            </div>
-            <Button onClick={() => setIsAddPlanOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add New Plan
+      <div className="p-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+          <h1 className="text-3xl font-bold mb-4 md:mb-0">Subscription Management</h1>
+          <div className="space-x-2">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Plan
+            </Button>
+            <Button variant="outline">
+              <Settings className="mr-2 h-4 w-4" />
+              Subscription Settings
             </Button>
           </div>
-
-          <Tabs defaultValue="plans" className="w-full">
-            <TabsList>
-              <TabsTrigger value="plans">Subscription Plans</TabsTrigger>
-              <TabsTrigger value="vendors">Vendor Subscriptions</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="plans" className="space-y-4">
-              <div className="flex justify-end mb-4">
-                <div className="flex items-center space-x-2 border rounded-md p-1">
-                  <Button 
-                    variant={viewMode === 'grid' ? 'default' : 'ghost'} 
-                    size="sm" 
-                    onClick={() => setViewMode('grid')}
-                    className="h-8 w-8 p-0"
-                  >
-                    <LayoutGrid className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant={viewMode === 'list' ? 'default' : 'ghost'} 
-                    size="sm" 
-                    onClick={() => setViewMode('list')}
-                    className="h-8 w-8 p-0"
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
+        </div>
+        
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mb-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Subscription Revenue</p>
+                  <h3 className="text-3xl font-bold mt-1">${totalSubscriptionRevenue.toLocaleString()}</h3>
+                  <p className="flex items-center text-sm text-green-500 mt-1">
+                    <ArrowUpRight className="h-4 w-4 mr-1" />
+                    +8.2% from last month
+                  </p>
+                </div>
+                <div className="p-2 bg-primary/10 rounded-full">
+                  <DollarSign className="h-6 w-6 text-primary" />
                 </div>
               </div>
-              
-              {viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {plans.map((plan) => (
-                    <Card key={plan.id} className={`border ${plan.featured ? 'border-primary' : ''}`}>
-                      <CardHeader>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle>{plan.name}</CardTitle>
-                            <CardDescription>
-                              {plan.vendorCount} vendors
-                            </CardDescription>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            {plan.featured && (
-                              <Badge className="bg-primary">Featured</Badge>
-                            )}
-                            {!plan.active && (
-                              <Badge variant="outline">Draft</Badge>
-                            )}
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="mb-4">
-                          <p className="text-3xl font-bold">
-                            ${plan.price}
-                            <span className="text-sm font-normal text-muted-foreground">
-                              /{plan.billingCycle}
-                            </span>
-                          </p>
-                        </div>
-                        <ul className="space-y-2 mb-6">
-                          {plan.features.map((feature, i) => (
-                            <li key={i} className="flex items-start">
-                              <Check className="h-4 w-4 mr-2 mt-1 text-green-500" />
-                              <span>{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                      <CardFooter className="flex justify-between border-t pt-4">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setCurrentPlan(plan);
-                            setIsEditPlanOpen(true);
-                          }}
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
-                          onClick={() => {
-                            setCurrentPlan(plan);
-                            setIsDeletePlanOpen(true);
-                          }}
-                        >
-                          <Trash className="h-4 w-4 mr-2" />
-                          Delete
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Subscribed Vendors</p>
+                  <h3 className="text-3xl font-bold mt-1">{totalSubscribers} / {totalVendors}</h3>
+                  <p className="flex items-center text-sm text-muted-foreground mt-1">
+                    <span className="font-medium">{subscriptionRate}%</span> subscription rate
+                  </p>
                 </div>
-              ) : (
-                <Card>
-                  <CardContent className="p-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Plan Name</TableHead>
-                          <TableHead>Price</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Vendors</TableHead>
-                          <TableHead>Featured</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {plans.map((plan) => (
-                          <TableRow key={plan.id}>
-                            <TableCell>
-                              <div className="font-medium">{plan.name}</div>
-                            </TableCell>
-                            <TableCell>
-                              ${plan.price}/{plan.billingCycle}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={plan.active ? "default" : "outline"}>
-                                {plan.active ? "Active" : "Draft"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>{plan.vendorCount}</TableCell>
-                            <TableCell>
-                              {plan.featured ? (
-                                <Check className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <X className="h-4 w-4 text-muted-foreground" />
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end space-x-2">
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => {
-                                    setCurrentPlan(plan);
-                                    setIsEditPlanOpen(true);
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                                  onClick={() => {
-                                    setCurrentPlan(plan);
-                                    setIsDeletePlanOpen(true);
-                                  }}
-                                >
-                                  <Trash className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            <TabsContent value="vendors" className="space-y-4">
+                <div className="p-2 bg-primary/10 rounded-full">
+                  <Store className="h-6 w-6 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Premium Subscribers</p>
+                  <h3 className="text-3xl font-bold mt-1">{subscriptionStats[1].count}</h3>
+                  <p className="flex items-center text-sm text-green-500 mt-1">
+                    <ArrowUpRight className="h-4 w-4 mr-1" />
+                    +15.3% from last month
+                  </p>
+                </div>
+                <div className="p-2 bg-primary/10 rounded-full">
+                  <CreditCard className="h-6 w-6 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <Tabs defaultValue="overview" className="mb-6">
+          <TabsList className="grid w-full grid-cols-4 md:w-[600px]">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="plans">Subscription Plans</TabsTrigger>
+            <TabsTrigger value="subscribers">Subscribers</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <Card>
-                <CardContent className="p-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Vendor</TableHead>
-                        <TableHead>Plan</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Start Date</TableHead>
-                        <TableHead>End Date</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Auto Renew</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {vendorSubscriptions.map((sub) => (
-                        <TableRow key={sub.id}>
-                          <TableCell>{sub.vendorName}</TableCell>
-                          <TableCell>{sub.planName}</TableCell>
-                          <TableCell>
-                            {getStatusBadge(sub.status)}
-                          </TableCell>
-                          <TableCell>{new Date(sub.startDate).toLocaleDateString()}</TableCell>
-                          <TableCell>{new Date(sub.endDate).toLocaleDateString()}</TableCell>
-                          <TableCell>${sub.amount.toFixed(2)}</TableCell>
-                          <TableCell>
-                            {sub.autoRenew ? (
-                              <Check className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <X className="h-4 w-4 text-muted-foreground" />
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="outline" size="sm">
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                <CardHeader>
+                  <CardTitle>Subscription Distribution</CardTitle>
+                  <CardDescription>Distribution of vendors across subscription plans</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-80 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={subscriptionStats}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="count"
+                          nameKey="plan"
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {subscriptionStats.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value, name, props) => [value, props.payload.plan]} />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
                 </CardContent>
               </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-
-      {/* Add Plan Dialog */}
-      <Dialog open={isAddPlanOpen} onOpenChange={setIsAddPlanOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Add Subscription Plan</DialogTitle>
-            <DialogDescription>
-              Create a new subscription plan for vendors.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Plan Name</Label>
-                <Input
-                  id="name"
-                  value={newPlan.name}
-                  onChange={(e) => setNewPlan({ ...newPlan, name: e.target.value })}
-                  placeholder="e.g. Professional"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="price">Price</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="price"
-                    type="number"
-                    value={newPlan.price}
-                    onChange={(e) => setNewPlan({ ...newPlan, price: parseFloat(e.target.value) })}
-                    className="pl-8"
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="billingCycle">Billing Cycle</Label>
-                <select
-                  id="billingCycle"
-                  value={newPlan.billingCycle}
-                  onChange={(e) => setNewPlan({ ...newPlan, billingCycle: e.target.value })}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                >
-                  <option value="monthly">Monthly</option>
-                  <option value="quarterly">Quarterly</option>
-                  <option value="annually">Annually</option>
-                </select>
-              </div>
-              <div className="grid gap-2">
-                <Label className="mb-2">Options</Label>
-                <div className="flex flex-col space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="featured"
-                      checked={newPlan.featured}
-                      onCheckedChange={(checked) => setNewPlan({ ...newPlan, featured: checked })}
-                    />
-                    <Label htmlFor="featured">Featured Plan</Label>
+              
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle>Subscription Growth</CardTitle>
+                      <CardDescription>Monthly subscription trends by plan</CardDescription>
+                    </div>
+                    <Select defaultValue="6months">
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Time Period" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="3months">Last 3 Months</SelectItem>
+                        <SelectItem value="6months">Last 6 Months</SelectItem>
+                        <SelectItem value="year">Last Year</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="active"
-                      checked={newPlan.active}
-                      onCheckedChange={(checked) => setNewPlan({ ...newPlan, active: checked })}
-                    />
-                    <Label htmlFor="active">Active</Label>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <Label>Plan Features</Label>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={addFeatureField}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Feature
-                </Button>
-              </div>
-              <div className="space-y-2">
-                {newPlan.features.map((feature, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <Input
-                      value={feature}
-                      onChange={(e) => handleFeatureChange(index, e.target.value)}
-                      placeholder="e.g. 100 products"
-                    />
-                    {newPlan.features.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeFeatureField(index)}
+                </CardHeader>
+                <CardContent>
+                  <div className="h-80 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={monthlySubscriptionData}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                       >
-                        <Trash className="h-4 w-4 text-red-500" />
-                      </Button>
-                    )}
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="Basic" stackId="a" fill="#0088FE" />
+                        <Bar dataKey="Premium" stackId="a" fill="#00C49F" />
+                        <Bar dataKey="Enterprise" stackId="a" fill="#FFBB28" />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
-                ))}
-              </div>
+                </CardContent>
+              </Card>
             </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddPlanOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleAddPlan}>
-              Add Plan
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Plan Dialog */}
-      <Dialog open={isEditPlanOpen} onOpenChange={setIsEditPlanOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Edit Subscription Plan</DialogTitle>
-            <DialogDescription>
-              Update the details for this subscription plan.
-            </DialogDescription>
-          </DialogHeader>
-          {currentPlan && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="edit-name">Plan Name</Label>
-                  <Input
-                    id="edit-name"
-                    value={currentPlan.name}
-                    onChange={(e) => setCurrentPlan({ ...currentPlan, name: e.target.value })}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="edit-price">Price</Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="edit-price"
-                      type="number"
-                      value={currentPlan.price}
-                      onChange={(e) => setCurrentPlan({ ...currentPlan, price: parseFloat(e.target.value) })}
-                      className="pl-8"
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="edit-billingCycle">Billing Cycle</Label>
-                  <select
-                    id="edit-billingCycle"
-                    value={currentPlan.billingCycle}
-                    onChange={(e) => setCurrentPlan({ ...currentPlan, billingCycle: e.target.value })}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                  >
-                    <option value="monthly">Monthly</option>
-                    <option value="quarterly">Quarterly</option>
-                    <option value="annually">Annually</option>
-                  </select>
-                </div>
-                <div className="grid gap-2">
-                  <Label className="mb-2">Options</Label>
-                  <div className="flex flex-col space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="edit-featured"
-                        checked={currentPlan.featured}
-                        onCheckedChange={(checked) => setCurrentPlan({ ...currentPlan, featured: checked })}
-                      />
-                      <Label htmlFor="edit-featured">Featured Plan</Label>
+            
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Recent Subscription Activity</CardTitle>
+                <CardDescription>Latest subscription purchases and renewals</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Subscription ID</TableHead>
+                      <TableHead>Vendor</TableHead>
+                      <TableHead>Plan</TableHead>
+                      <TableHead>Start Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Next Billing</TableHead>
+                      <TableHead>Amount</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentSubscriptions.map((subscription) => (
+                      <TableRow key={subscription.id}>
+                        <TableCell className="font-medium">{subscription.id}</TableCell>
+                        <TableCell>{subscription.vendor}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={
+                            subscription.plan === 'Premium' ? 'bg-purple-100 text-purple-800' : 
+                            subscription.plan === 'Enterprise' ? 'bg-blue-100 text-blue-800' : 
+                            'bg-gray-100 text-gray-800'
+                          }>
+                            {subscription.plan}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{subscription.date}</TableCell>
+                        <TableCell>
+                          <Badge className={
+                            subscription.status === 'Active' ? 'bg-green-100 text-green-800' : 
+                            'bg-red-100 text-red-800'
+                          }>
+                            {subscription.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{subscription.nextBilling}</TableCell>
+                        <TableCell>${subscription.amount}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="plans">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {subscriptionPlans.map((plan) => (
+                <Card key={plan.id} className={plan.popular ? 'border-primary' : ''}>
+                  {plan.popular && (
+                    <Badge className="absolute top-4 right-4 bg-primary">Popular</Badge>
+                  )}
+                  <CardHeader>
+                    <CardTitle>{plan.name}</CardTitle>
+                    <CardDescription>
+                      ${plan.price}/month
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <p className="text-sm font-medium">Features:</p>
+                      <ul className="space-y-2">
+                        {plan.features.map((feature, i) => (
+                          <li key={i} className="flex items-start">
+                            <Check className="h-4 w-4 mr-2 text-green-500 shrink-0 mt-0.5" />
+                            <span className="text-sm">{feature}</span>
+                          </li>
+                        ))}
+                        {plan.notIncluded.map((feature, i) => (
+                          <li key={i} className="flex items-start text-muted-foreground">
+                            <X className="h-4 w-4 mr-2 shrink-0 mt-0.5" />
+                            <span className="text-sm">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="edit-active"
-                        checked={currentPlan.active}
-                        onCheckedChange={(checked) => setCurrentPlan({ ...currentPlan, active: checked })}
-                      />
-                      <Label htmlFor="edit-active">Active</Label>
+                  </CardContent>
+                  <CardFooter className="flex flex-col space-y-2">
+                    <div className="flex items-center justify-between w-full text-sm">
+                      <span>Active subscribers:</span>
+                      <Badge variant="outline">
+                        {subscriptionStats.find(s => s.plan === plan.name)?.count}
+                      </Badge>
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <Label>Plan Features</Label>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={addFeatureField}
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add Feature
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  {currentPlan.features.map((feature, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <Input
-                        value={feature}
-                        onChange={(e) => handleFeatureChange(index, e.target.value)}
-                      />
-                      {currentPlan.features.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeFeatureField(index)}
-                        >
-                          <Trash className="h-4 w-4 text-red-500" />
-                        </Button>
-                      )}
+                    <div className="flex items-center justify-between w-full text-sm">
+                      <span>Monthly revenue:</span>
+                      <span className="font-medium">
+                        ${subscriptionStats.find(s => s.plan === plan.name)?.revenue.toLocaleString()}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              </div>
+                    <Button className="w-full mt-4">Edit Plan</Button>
+                  </CardFooter>
+                </Card>
+              ))}
             </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditPlanOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleEditPlan}>
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Plan Confirmation */}
-      <AlertDialog open={isDeletePlanOpen} onOpenChange={setIsDeletePlanOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete the "{currentPlan?.name}" subscription plan.
-              {currentPlan?.vendorCount > 0 && (
-                <p className="mt-2 text-red-500 font-semibold">
-                  Warning: {currentPlan.vendorCount} vendors are currently using this plan.
+          </TabsContent>
+          
+          <TabsContent value="subscribers">
+            <Card>
+              <CardHeader>
+                <CardTitle>Subscriber List</CardTitle>
+                <CardDescription>All vendors with active subscriptions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-center text-muted-foreground py-8">
+                  Subscriber list would be displayed here, showing all vendors with their subscription details, status, and history.
                 </p>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeletePlan} className="bg-red-500 hover:bg-red-600">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="analytics">
+            <Card>
+              <CardHeader>
+                <CardTitle>Subscription Analytics</CardTitle>
+                <CardDescription>Detailed analytics for subscription performance</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-center text-muted-foreground py-8">
+                  Advanced subscription analytics would be displayed here, including metrics like churn rate, lifetime value, conversion rate from free to paid, etc.
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </AdminLayout>
   );
-}
+};
+
+export default AdminSubscriptions;
