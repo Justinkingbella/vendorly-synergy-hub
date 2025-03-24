@@ -19,6 +19,10 @@ import AdminOrders from "./pages/admin/Orders";
 import AdminSettings from "./pages/admin/Settings";
 import AdminCommissions from "./pages/admin/Commissions";
 import AdminSubscriptions from "./pages/admin/Subscriptions";
+import AdminCategories from "./pages/admin/Categories";
+import AdminCreateProduct from "./pages/admin/CreateProduct";
+import AdminCreateSubscription from "./pages/admin/CreateSubscription";
+import AdminPaymentProcessing from "./pages/admin/PaymentProcessing";
 
 // Vendor routes
 import VendorDashboard from "./pages/vendor/Dashboard";
@@ -62,10 +66,16 @@ const App = () => (
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="/admin/vendors" element={<AdminVendors />} />
           <Route path="/admin/products" element={<AdminProducts />} />
+          <Route path="/admin/products/create" element={<AdminCreateProduct />} />
+          <Route path="/admin/products/edit/:id" element={<AdminCreateProduct />} />
+          <Route path="/admin/categories" element={<AdminCategories />} />
           <Route path="/admin/orders" element={<AdminOrders />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
           <Route path="/admin/commissions" element={<AdminCommissions />} />
           <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
+          <Route path="/admin/subscriptions/create" element={<AdminCreateSubscription />} />
+          <Route path="/admin/subscriptions/edit/:id" element={<AdminCreateSubscription />} />
+          <Route path="/admin/payments" element={<AdminPaymentProcessing />} />
           
           {/* Vendor Routes */}
           <Route path="/vendor/dashboard" element={<VendorDashboard />} />

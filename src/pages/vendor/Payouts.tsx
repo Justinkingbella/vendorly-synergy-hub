@@ -1,21 +1,19 @@
 
 import React, { useState } from 'react';
-import { 
-  CreditCard, Wallet, Calendar, Download, 
-  ArrowDown, ArrowUp, DollarSign, Filter, 
-  FileText, Check, X
-} from 'lucide-react';
 import VendorLayout from '@/components/layout/VendorLayout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -24,14 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+import { toast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -41,134 +32,111 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from '@/hooks/use-toast';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { CreditCard, Search, FileText, Filter, Calendar, ArrowRight, Eye, Wallet, ArrowUpRight, Download } from 'lucide-react';
 
 // Mock data for payouts
-const mockPayouts = Array.from({ length: 8 }).map((_, i) => ({
-  id: `PO-${1000 + i}`,
-  amount: Math.floor(Math.random() * 5000) + 500,
-  status: ['Pending', 'Completed', 'Processing', 'Rejected'][Math.floor(Math.random() * 4)],
-  requestedAt: new Date(Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000)),
-  processedAt: Math.random() > 0.5 ? new Date(Date.now() - Math.floor(Math.random() * 15 * 24 * 60 * 60 * 1000)) : null,
-  paymentMethod: ['Bank Transfer', 'PayPal', 'Stripe'][Math.floor(Math.random() * 3)],
-  reference: `REF-${Math.floor(Math.random() * 1000000)}`,
-}));
+const payoutHistory = [
+  { id: 'PAY-10521', amount: 3500.75, requestDate: '2023-12-05', status: 'Pending', account: '****3456' },
+  { id: 'PAY-10420', amount: 1250.50, requestDate: '2023-11-15', status: 'Processed', processedDate: '2023-11-17', account: '****3456' },
+  { id: 'PAY-10318', amount: 4800.25, requestDate: '2023-10-22', status: 'Processed', processedDate: '2023-10-24', account: '****3456' },
+  { id: 'PAY-10299', amount: 920.00, requestDate: '2023-09-18', status: 'Processed', processedDate: '2023-09-20', account: '****3456' },
+  { id: 'PAY-10187', amount: 350.50, requestDate: '2023-09-05', status: 'Rejected', rejectionReason: 'Insufficient account information', account: '****3456' },
+];
 
-// Validation schema for payout request form
-const payoutFormSchema = z.object({
-  amount: z.string().min(1, { message: "Amount is required" }).refine(
-    (value) => {
-      const num = parseFloat(value);
-      return !isNaN(num) && num > 0;
-    },
-    { message: "Amount must be a positive number" }
-  ),
-  paymentMethod: z.string().min(1, { message: "Payment method is required" }),
-  accountDetails: z.string().min(1, { message: "Account details are required" }),
-});
-
-type PayoutFormValues = z.infer<typeof payoutFormSchema>;
+const transactionHistory = [
+  { id: 'TRX-20521', type: 'Order Sale', amount: 250.00, date: '2023-12-05', status: 'Completed', orderId: 'ORD-58921' },
+  { id: 'TRX-20520', type: 'Order Sale', amount: 1200.75, date: '2023-12-04', status: 'Completed', orderId: 'ORD-58920' },
+  { id: 'TRX-20519', type: 'Commission', amount: -180.15, date: '2023-12-04', status: 'Completed', orderId: 'ORD-58920' },
+  { id: 'TRX-20518', type: 'Order Sale', amount: 550.50, date: '2023-12-03', status: 'Completed', orderId: 'ORD-58919' },
+  { id: 'TRX-20517', type: 'Commission', amount: -82.50, date: '2023-12-03', status: 'Completed', orderId: 'ORD-58919' },
+  { id: 'TRX-20516', type: 'Order Sale', amount: 1500.00, date: '2023-12-01', status: 'Completed', orderId: 'ORD-58918' },
+  { id: 'TRX-20515', type: 'Commission', amount: -225.00, date: '2023-12-01', status: 'Completed', orderId: 'ORD-58918' },
+  { id: 'TRX-20514', type: 'Payout', amount: -4800.25, date: '2023-10-24', status: 'Completed', payoutId: 'PAY-10318' },
+];
 
 const VendorPayouts = () => {
+  const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
+  const [requestAmount, setRequestAmount] = useState('');
+  const [selectedTab, setSelectedTab] = useState('history');
+  const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [timeFilter, setTimeFilter] = useState('all');
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState('all');
-  const [isRequestPayoutOpen, setIsRequestPayoutOpen] = useState(false);
-  
-  // Setup form with validation
-  const form = useForm<PayoutFormValues>({
-    resolver: zodResolver(payoutFormSchema),
-    defaultValues: {
-      amount: "",
-      paymentMethod: "",
-      accountDetails: "",
-    },
+  const [bankDetails, setBankDetails] = useState({
+    accountNumber: '1234567890123456',
+    bankName: 'First National Bank',
+    accountHolder: 'Premium Electronics',
+    branchCode: '123456',
   });
+  const [isEditBankDetailsOpen, setIsEditBankDetailsOpen] = useState(false);
+  const [updatedBankDetails, setUpdatedBankDetails] = useState(bankDetails);
 
-  // Filter payouts based on selected filters
-  const filteredPayouts = mockPayouts.filter(payout => {
-    const matchesStatus = statusFilter === 'all' || payout.status.toLowerCase() === statusFilter.toLowerCase();
-    const matchesPaymentMethod = paymentMethodFilter === 'all' || 
-                               payout.paymentMethod.toLowerCase().includes(paymentMethodFilter.toLowerCase());
+  // Calculate available balance from transaction history
+  const availableBalance = transactionHistory.reduce((total, transaction) => total + transaction.amount, 0);
+
+  const handleRequestPayout = () => {
+    const amount = parseFloat(requestAmount);
     
-    if (timeFilter === 'all') return matchesStatus && matchesPaymentMethod;
+    if (isNaN(amount) || amount <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid amount greater than 0.",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    const today = new Date();
-    const requestedDate = new Date(payout.requestedAt);
-    const diffTime = Math.abs(today.getTime() - requestedDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (amount > availableBalance) {
+      toast({
+        title: "Insufficient Balance",
+        description: "The requested amount exceeds your available balance.",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    const matchesTimeFilter = 
-      (timeFilter === 'last7days' && diffDays <= 7) ||
-      (timeFilter === 'last30days' && diffDays <= 30) ||
-      (timeFilter === 'last90days' && diffDays <= 90);
+    // In a real app, you would make an API call here
+    console.log(`Requesting payout of N$ ${amount}`);
     
-    return matchesStatus && matchesPaymentMethod && matchesTimeFilter;
-  });
-  
-  // Format date to readable string
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-  
-  // Handle submit for payout request
-  const onSubmit = (data: PayoutFormValues) => {
-    // In a real app, this would send to your API
-    console.log("Payout request:", data);
+    setIsRequestDialogOpen(false);
+    setRequestAmount('');
     
     toast({
-      title: "Payout Request Submitted",
-      description: `Your request for $${data.amount} has been submitted and is pending review.`,
+      title: "Payout Requested",
+      description: `Your payout request for N$ ${amount.toFixed(2)} has been submitted.`,
     });
+  };
+
+  const handleUpdateBankDetails = () => {
+    setBankDetails(updatedBankDetails);
+    setIsEditBankDetailsOpen(false);
     
-    setIsRequestPayoutOpen(false);
-    form.reset();
+    toast({
+      title: "Bank Details Updated",
+      description: "Your bank account information has been updated successfully.",
+    });
   };
-  
-  const getStatusBadge = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
-      case 'processing':
-        return <Badge className="bg-blue-100 text-blue-800">Processing</Badge>;
-      case 'rejected':
-        return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
-    }
-  };
-  
+
+  // Filter payouts based on search and status
+  const filteredPayouts = payoutHistory.filter(payout => {
+    const matchesSearch = 
+      payout.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payout.account.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = 
+      statusFilter === 'all' ||
+      payout.status.toLowerCase() === statusFilter.toLowerCase();
+    
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <VendorLayout>
       <div className="p-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Payouts</h1>
-            <p className="text-muted-foreground">Manage your earnings and request payouts</p>
-          </div>
+          <h1 className="text-3xl font-bold mb-4 md:mb-0">Payouts</h1>
           
-          <Dialog open={isRequestPayoutOpen} onOpenChange={setIsRequestPayoutOpen}>
+          <Dialog open={isRequestDialogOpen} onOpenChange={setIsRequestDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="mt-4 md:mt-0">
+              <Button>
                 <Wallet className="mr-2 h-4 w-4" />
                 Request Payout
               </Button>
@@ -177,108 +145,150 @@ const VendorPayouts = () => {
               <DialogHeader>
                 <DialogTitle>Request Payout</DialogTitle>
                 <DialogDescription>
-                  Fill in the details below to request a payout of your earnings.
+                  Enter the amount you want to withdraw from your available balance.
                 </DialogDescription>
               </DialogHeader>
-              
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="amount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Amount ($)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Enter amount" 
-                            {...field} 
-                            type="number"
-                            min="1" 
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Maximum available: $1,500.00
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Amount (N$)</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    value={requestAmount}
+                    onChange={(e) => setRequestAmount(e.target.value)}
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
                   />
-                  
-                  <FormField
-                    control={form.control}
-                    name="paymentMethod"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Payment Method</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select payment method" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                            <SelectItem value="paypal">PayPal</SelectItem>
-                            <SelectItem value="stripe">Stripe</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                  <p className="text-sm text-muted-foreground">
+                    Available balance: <span className="font-medium">N$ {availableBalance.toFixed(2)}</span>
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Bank Account</Label>
+                  <div className="p-3 border rounded-md">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium">{bankDetails.bankName}</p>
+                        <p>Account: {bankDetails.accountNumber}</p>
+                        <p className="text-sm text-muted-foreground">{bankDetails.accountHolder}</p>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => {
+                          setIsRequestDialogOpen(false);
+                          setIsEditBankDetailsOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Processing Time</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Payouts are typically processed within 1-3 business days after approval.
+                  </p>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsRequestDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleRequestPayout}>
+                  Request Payout
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          
+          <Dialog open={isEditBankDetailsOpen} onOpenChange={setIsEditBankDetailsOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Bank Details</DialogTitle>
+                <DialogDescription>
+                  Update your bank account information for payouts.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="accountHolder">Account Holder Name</Label>
+                  <Input
+                    id="accountHolder"
+                    value={updatedBankDetails.accountHolder}
+                    onChange={(e) => setUpdatedBankDetails({...updatedBankDetails, accountHolder: e.target.value})}
                   />
-                  
-                  <FormField
-                    control={form.control}
-                    name="accountDetails"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Account Details</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Enter account details" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Account number, PayPal email, etc.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="accountNumber">Account Number</Label>
+                  <Input
+                    id="accountNumber"
+                    value={updatedBankDetails.accountNumber}
+                    onChange={(e) => setUpdatedBankDetails({...updatedBankDetails, accountNumber: e.target.value})}
                   />
-                  
-                  <DialogFooter>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setIsRequestPayoutOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit">Submit Request</Button>
-                  </DialogFooter>
-                </form>
-              </Form>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="bankName">Bank Name</Label>
+                  <Select 
+                    value={updatedBankDetails.bankName} 
+                    onValueChange={(value) => setUpdatedBankDetails({...updatedBankDetails, bankName: value})}
+                  >
+                    <SelectTrigger id="bankName">
+                      <SelectValue placeholder="Select bank" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="First National Bank">First National Bank</SelectItem>
+                      <SelectItem value="Standard Bank">Standard Bank</SelectItem>
+                      <SelectItem value="Nedbank">Nedbank</SelectItem>
+                      <SelectItem value="Bank Windhoek">Bank Windhoek</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="branchCode">Branch Code</Label>
+                  <Input
+                    id="branchCode"
+                    value={updatedBankDetails.branchCode}
+                    onChange={(e) => setUpdatedBankDetails({...updatedBankDetails, branchCode: e.target.value})}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsEditBankDetailsOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleUpdateBankDetails}>
+                  Save Changes
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Balances Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-semibold">Available Balance</h2>
-                  <p className="text-muted-foreground">Ready for payout</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Available Balance</p>
+                  <h3 className="text-3xl font-bold">N$ {availableBalance.toFixed(2)}</h3>
+                  <p className="flex items-center text-sm text-green-500 mt-1">
+                    <ArrowUpRight className="h-4 w-4 mr-1" />
+                    +N$ 1,950.00 this month
+                  </p>
                 </div>
-                <div className="text-3xl font-bold flex items-center">
-                  <DollarSign className="h-6 w-6 mr-1" />
-                  1,500.00
-                </div>
+                <Button>
+                  Request Payout
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -287,185 +297,274 @@ const VendorPayouts = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-semibold">Pending Balance</h2>
-                  <p className="text-muted-foreground">Processing</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Bank Account</p>
+                  <h3 className="text-xl font-bold mb-1">{bankDetails.bankName}</h3>
+                  <p className="text-sm mb-1">Account: {bankDetails.accountNumber}</p>
+                  <p className="text-xs text-muted-foreground">{bankDetails.accountHolder}</p>
                 </div>
-                <div className="text-3xl font-bold flex items-center">
-                  <DollarSign className="h-6 w-6 mr-1" />
-                  450.00
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-semibold">Total Paid Out</h2>
-                  <p className="text-muted-foreground">All time</p>
-                </div>
-                <div className="text-3xl font-bold flex items-center">
-                  <DollarSign className="h-6 w-6 mr-1" />
-                  12,750.00
-                </div>
+                <Button variant="outline" onClick={() => setIsEditBankDetailsOpen(true)}>
+                  Edit Details
+                </Button>
               </div>
             </CardContent>
           </Card>
         </div>
         
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Payout History</CardTitle>
-            <CardDescription>View and filter your payout requests</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="processing">Processing</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={timeFilter} onValueChange={setTimeFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by time" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="last7days">Last 7 Days</SelectItem>
-                  <SelectItem value="last30days">Last 30 Days</SelectItem>
-                  <SelectItem value="last90days">Last 90 Days</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Methods</SelectItem>
-                  <SelectItem value="bank">Bank Transfer</SelectItem>
-                  <SelectItem value="paypal">PayPal</SelectItem>
-                  <SelectItem value="stripe">Stripe</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Button variant="outline" className="flex items-center">
-                <Download className="mr-2 h-4 w-4" />
-                Export History
-              </Button>
-            </div>
-            
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Requested</TableHead>
-                  <TableHead>Processed</TableHead>
-                  <TableHead>Method</TableHead>
-                  <TableHead>Reference</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredPayouts.length > 0 ? (
-                  filteredPayouts.map((payout) => (
-                    <TableRow key={payout.id}>
-                      <TableCell>{payout.id}</TableCell>
-                      <TableCell>${payout.amount.toFixed(2)}</TableCell>
-                      <TableCell>{getStatusBadge(payout.status)}</TableCell>
-                      <TableCell>{formatDate(payout.requestedAt)}</TableCell>
-                      <TableCell>
-                        {payout.processedAt ? formatDate(payout.processedAt) : '—'}
-                      </TableCell>
-                      <TableCell>{payout.paymentMethod}</TableCell>
-                      <TableCell className="font-mono text-xs">
-                        {payout.reference}
-                      </TableCell>
+        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mb-6">
+          <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
+            <TabsTrigger value="history">Payout History</TabsTrigger>
+            <TabsTrigger value="transactions">Transaction History</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="history">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <CardTitle>Payout History</CardTitle>
+                  
+                  <div className="flex flex-col md:flex-row gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search payouts..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-8 w-full md:w-[200px]"
+                      />
+                    </div>
+                    
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-full md:w-[150px]">
+                        <div className="flex items-center">
+                          <Filter className="mr-2 h-4 w-4" />
+                          <span>Status</span>
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="processed">Processed</SelectItem>
+                        <SelectItem value="rejected">Rejected</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <Button variant="outline">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Date Range
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Payout ID</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Request Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Account</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      <div className="flex flex-col items-center justify-center py-4">
-                        <FileText className="h-12 w-12 text-muted-foreground mb-3" />
-                        <p className="text-muted-foreground mb-2">No payout records found</p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <p className="text-sm text-muted-foreground">
-              Showing {filteredPayouts.length} of {mockPayouts.length} records
-            </p>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" disabled>
-                Previous
-              </Button>
-              <Button variant="outline" size="sm" disabled>
-                Next
-              </Button>
-            </div>
-          </CardFooter>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Payout Information</CardTitle>
-            <CardDescription>How our payout process works</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="mt-1 bg-primary text-primary-foreground rounded-full p-1">
-                  <Calendar className="h-4 w-4" />
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPayouts.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          No payout history found.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredPayouts.map((payout) => (
+                        <TableRow key={payout.id}>
+                          <TableCell className="font-medium">{payout.id}</TableCell>
+                          <TableCell>N$ {payout.amount.toFixed(2)}</TableCell>
+                          <TableCell>{payout.requestDate}</TableCell>
+                          <TableCell>
+                            <Badge 
+                              className={
+                                payout.status === 'Processed' ? 'bg-green-100 text-green-800' : 
+                                payout.status === 'Rejected' ? 'bg-red-100 text-red-800' : 
+                                'bg-yellow-100 text-yellow-800'
+                              }
+                            >
+                              {payout.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{payout.account}</TableCell>
+                          <TableCell>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  Details
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Payout Details</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4 py-4">
+                                  <div className="space-y-1">
+                                    <p className="text-sm font-medium">Payout ID</p>
+                                    <p>{payout.id}</p>
+                                  </div>
+                                  
+                                  <div className="space-y-1">
+                                    <p className="text-sm font-medium">Amount</p>
+                                    <p>N$ {payout.amount.toFixed(2)}</p>
+                                  </div>
+                                  
+                                  <div className="space-y-1">
+                                    <p className="text-sm font-medium">Request Date</p>
+                                    <p>{payout.requestDate}</p>
+                                  </div>
+                                  
+                                  <div className="space-y-1">
+                                    <p className="text-sm font-medium">Status</p>
+                                    <Badge 
+                                      className={
+                                        payout.status === 'Processed' ? 'bg-green-100 text-green-800' : 
+                                        payout.status === 'Rejected' ? 'bg-red-100 text-red-800' : 
+                                        'bg-yellow-100 text-yellow-800'
+                                      }
+                                    >
+                                      {payout.status}
+                                    </Badge>
+                                  </div>
+                                  
+                                  {payout.processedDate && (
+                                    <div className="space-y-1">
+                                      <p className="text-sm font-medium">Processed Date</p>
+                                      <p>{payout.processedDate}</p>
+                                    </div>
+                                  )}
+                                  
+                                  {payout.rejectionReason && (
+                                    <div className="space-y-1">
+                                      <p className="text-sm font-medium">Rejection Reason</p>
+                                      <p className="text-red-600">{payout.rejectionReason}</p>
+                                    </div>
+                                  )}
+                                  
+                                  <div className="space-y-1">
+                                    <p className="text-sm font-medium">Bank Account</p>
+                                    <p>{bankDetails.bankName}</p>
+                                    <p>{payout.account}</p>
+                                  </div>
+                                </div>
+                                <DialogFooter>
+                                  <Button variant="outline">
+                                    <Download className="h-4 w-4 mr-2" />
+                                    Download Receipt
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="transactions">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <CardTitle>Transaction History</CardTitle>
+                  
+                  <div className="flex flex-col md:flex-row gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search transactions..."
+                        className="pl-8 w-full md:w-[200px]"
+                      />
+                    </div>
+                    
+                    <Select defaultValue="all">
+                      <SelectTrigger className="w-full md:w-[150px]">
+                        <div className="flex items-center">
+                          <Filter className="mr-2 h-4 w-4" />
+                          <span>Type</span>
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="sale">Sales</SelectItem>
+                        <SelectItem value="commission">Commissions</SelectItem>
+                        <SelectItem value="payout">Payouts</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <Button variant="outline">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Export
+                    </Button>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-medium">Payout Schedule</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Payouts are processed every Monday and Thursday. Requests submitted before 12 PM will be processed on the next payout day.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="mt-1 bg-primary text-primary-foreground rounded-full p-1">
-                  <DollarSign className="h-4 w-4" />
-                </div>
-                <div>
-                  <h3 className="font-medium">Minimum Payout Amount</h3>
-                  <p className="text-sm text-muted-foreground">
-                    The minimum amount for a payout request is $50.00. There is no maximum limit.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="mt-1 bg-primary text-primary-foreground rounded-full p-1">
-                  <CreditCard className="h-4 w-4" />
-                </div>
-                <div>
-                  <h3 className="font-medium">Payment Methods</h3>
-                  <p className="text-sm text-muted-foreground">
-                    We currently support bank transfers, PayPal, and Stripe Connect. You can update your preferred payment method in your settings.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Transaction ID</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Reference</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {transactionHistory.map((transaction) => (
+                      <TableRow key={transaction.id}>
+                        <TableCell className="font-medium">{transaction.id}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant="outline"
+                            className={
+                              transaction.type === 'Order Sale' ? 'bg-blue-100 text-blue-800' :
+                              transaction.type === 'Commission' ? 'bg-amber-100 text-amber-800' :
+                              'bg-purple-100 text-purple-800'
+                            }
+                          >
+                            {transaction.type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className={transaction.amount < 0 ? 'text-red-600' : 'text-green-600'}>
+                          {transaction.amount > 0 ? '+' : ''}{transaction.amount.toFixed(2)} N$
+                        </TableCell>
+                        <TableCell>{transaction.date}</TableCell>
+                        <TableCell>
+                          <Badge className="bg-green-100 text-green-800">
+                            {transaction.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {transaction.orderId && (
+                            <Link to={`/vendor/orders/${transaction.orderId}`} className="text-primary hover:underline">
+                              {transaction.orderId}
+                            </Link>
+                          )}
+                          {transaction.payoutId && (
+                            <Link to="#" className="text-primary hover:underline">
+                              {transaction.payoutId}
+                            </Link>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </VendorLayout>
   );

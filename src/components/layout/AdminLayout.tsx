@@ -3,7 +3,8 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Users, Store, Package, ShoppingCart, Settings, DollarSign, 
-  LogOut, Menu, Bell, Search, ChevronDown, BarChart2, Percent
+  LogOut, Menu, Bell, Search, ChevronDown, BarChart2, Percent,
+  CreditCard, FolderPlus, Tag, Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -30,10 +31,18 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     { icon: BarChart2, label: 'Dashboard', path: '/admin/dashboard' },
     { icon: Users, label: 'Users', path: '/admin/users' },
     { icon: Store, label: 'Vendors', path: '/admin/vendors' },
-    { icon: Package, label: 'Products', path: '/admin/products' },
+    { icon: Package, label: 'Products', path: '/admin/products', subMenu: [
+      { label: 'All Products', path: '/admin/products' },
+      { label: 'Add Product', path: '/admin/products/create' },
+      { label: 'Categories', path: '/admin/categories' }
+    ]},
     { icon: ShoppingCart, label: 'Orders', path: '/admin/orders' },
     { icon: Percent, label: 'Commissions', path: '/admin/commissions' },
-    { icon: DollarSign, label: 'Subscriptions', path: '/admin/subscriptions' },
+    { icon: DollarSign, label: 'Subscriptions', path: '/admin/subscriptions', subMenu: [
+      { label: 'All Plans', path: '/admin/subscriptions' },
+      { label: 'Create Plan', path: '/admin/subscriptions/create' },
+    ]},
+    { icon: CreditCard, label: 'Payments', path: '/admin/payments' },
     { icon: Settings, label: 'Settings', path: '/admin/settings' },
   ];
 
@@ -64,21 +73,56 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
             <nav className="grid gap-2">
               {sidebarLinks.map((link, i) => {
-                const isActive = location.pathname === link.path;
+                const isActive = location.pathname === link.path || 
+                                (link.subMenu && link.subMenu.some(subItem => location.pathname === subItem.path));
                 return (
-                  <Link
-                    key={i}
-                    to={link.path}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
-                      isActive 
-                        ? "bg-primary text-primary-foreground" 
-                        : "hover:bg-muted"
-                    }`}
-                  >
-                    <link.icon className="h-4 w-4" />
-                    {link.label}
-                  </Link>
+                  <div key={i}>
+                    {link.subMenu ? (
+                      <div className="space-y-1">
+                        <Link
+                          to={link.path}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                            isActive 
+                              ? "bg-primary text-primary-foreground" 
+                              : "hover:bg-muted"
+                          }`}
+                        >
+                          <link.icon className="h-4 w-4" />
+                          {link.label}
+                        </Link>
+                        <div className="ml-8 space-y-1">
+                          {link.subMenu.map((subItem, j) => (
+                            <Link
+                              key={j}
+                              to={subItem.path}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-all ${
+                                location.pathname === subItem.path 
+                                  ? "bg-primary/70 text-primary-foreground" 
+                                  : "hover:bg-muted"
+                              }`}
+                            >
+                              {subItem.label}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <Link
+                        to={link.path}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                          isActive 
+                            ? "bg-primary text-primary-foreground" 
+                            : "hover:bg-muted"
+                        }`}
+                      >
+                        <link.icon className="h-4 w-4" />
+                        {link.label}
+                      </Link>
+                    )}
+                  </div>
                 );
               })}
             </nav>
@@ -92,22 +136,55 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           <div className="p-6">
             <h2 className="text-lg font-bold">Admin Panel</h2>
           </div>
-          <nav className="grid gap-2 px-4">
+          <nav className="grid gap-2 px-4 overflow-y-auto">
             {sidebarLinks.map((link, i) => {
-              const isActive = location.pathname === link.path;
+              const isActive = location.pathname === link.path ||
+                              (link.subMenu && link.subMenu.some(subItem => location.pathname === subItem.path));
               return (
-                <Link
-                  key={i}
-                  to={link.path}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
-                    isActive 
-                      ? "bg-primary text-primary-foreground" 
-                      : "hover:bg-muted"
-                  }`}
-                >
-                  <link.icon className="h-4 w-4" />
-                  {link.label}
-                </Link>
+                <div key={i} className="mb-1">
+                  {link.subMenu ? (
+                    <div className="space-y-1">
+                      <Link
+                        to={link.path}
+                        className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                          isActive 
+                            ? "bg-primary text-primary-foreground" 
+                            : "hover:bg-muted"
+                        }`}
+                      >
+                        <link.icon className="h-4 w-4" />
+                        {link.label}
+                      </Link>
+                      <div className="ml-8 space-y-1">
+                        {link.subMenu.map((subItem, j) => (
+                          <Link
+                            key={j}
+                            to={subItem.path}
+                            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-all ${
+                              location.pathname === subItem.path 
+                                ? "bg-primary/70 text-primary-foreground" 
+                                : "hover:bg-muted"
+                            }`}
+                          >
+                            {subItem.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <Link
+                      to={link.path}
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                        isActive 
+                          ? "bg-primary text-primary-foreground" 
+                          : "hover:bg-muted"
+                      }`}
+                    >
+                      <link.icon className="h-4 w-4" />
+                      {link.label}
+                    </Link>
+                  )}
+                </div>
               );
             })}
           </nav>
@@ -129,6 +206,29 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                 />
               </div>
               <div className="flex items-center gap-4">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 gap-1">
+                      <Plus className="h-3.5 w-3.5" />
+                      <span>New</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => navigate('/admin/products/create')}>
+                      <Package className="mr-2 h-4 w-4" />
+                      Add Product
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/admin/categories')}>
+                      <Tag className="mr-2 h-4 w-4" />
+                      Add Category
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/admin/subscriptions/create')}>
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Create Subscription
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
                 <Button variant="outline" size="icon" className="relative h-8 w-8">
                   <Bell className="h-4 w-4" />
                   <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
