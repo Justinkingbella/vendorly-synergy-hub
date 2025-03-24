@@ -127,6 +127,7 @@ const VendorSubscription = () => {
   const [isUpgradeDialogOpen, setIsUpgradeDialogOpen] = useState(false);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [isUpdatePaymentDialogOpen, setIsUpdatePaymentDialogOpen] = useState(false);
   
   // Calculate days until next billing
   const today = new Date();
@@ -228,14 +229,17 @@ const VendorSubscription = () => {
                   </ul>
                   
                   <div className="flex flex-col space-y-2">
-                    <Button asChild>
-                      <DialogTrigger onClick={() => setIsCancelDialogOpen(true)}>
-                        Cancel Subscription
+                    <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button>Cancel Subscription</Button>
                       </DialogTrigger>
-                    </Button>
-                    <Button variant="outline" asChild>
-                      <DialogTrigger>Update Payment Method</DialogTrigger>
-                    </Button>
+                    </Dialog>
+                    
+                    <Dialog open={isUpdatePaymentDialogOpen} onOpenChange={setIsUpdatePaymentDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline">Update Payment Method</Button>
+                      </DialogTrigger>
+                    </Dialog>
                   </div>
                 </div>
               </div>
@@ -482,6 +486,59 @@ const VendorSubscription = () => {
             </Button>
             <Button onClick={handlePaymentSuccess}>
               Complete Payment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Update Payment Method Dialog */}
+      <Dialog open={isUpdatePaymentDialogOpen} onOpenChange={setIsUpdatePaymentDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Payment Method</DialogTitle>
+            <DialogDescription>
+              Enter your new payment information below
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="border rounded-md p-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                Payment form would go here with credit card fields
+              </p>
+              <div className="flex justify-center gap-2 mt-4">
+                <div className="w-10 h-6 border rounded flex items-center justify-center">
+                  <span className="text-xs">Visa</span>
+                </div>
+                <div className="w-10 h-6 border rounded flex items-center justify-center">
+                  <span className="text-xs">MC</span>
+                </div>
+                <div className="w-10 h-6 border rounded flex items-center justify-center">
+                  <span className="text-xs">Amex</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center">
+              <Shield className="h-4 w-4 mr-2 text-green-500" />
+              <p className="text-sm text-muted-foreground">
+                Your payment information is securely processed
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsUpdatePaymentDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              setIsUpdatePaymentDialogOpen(false);
+              toast({
+                title: "Payment method updated",
+                description: "Your payment method has been successfully updated.",
+              });
+            }}>
+              Update Payment Method
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -54,6 +54,9 @@ import {
 } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
+
+const mockProducts = []; // Define or import correctly
 
 const mockVendors = Array.from({ length: 10 }).map((_, i) => ({
   id: i + 1,
