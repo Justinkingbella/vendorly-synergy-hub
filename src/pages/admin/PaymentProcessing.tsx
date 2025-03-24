@@ -1,14 +1,17 @@
 
 import React, { useState } from 'react';
+import { format } from 'date-fns';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { 
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import { Search, Filter, Calendar, Download, Check, X, Clock, ArrowUp } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -18,424 +21,517 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Search, FileText, DollarSign, CheckCircle, XCircle, Info } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Mock data for payment requests
-const mockPayments = [
+const mockPaymentRequests = [
   { 
-    id: 'PAY-10521', 
-    vendor: 'Premium Electronics', 
-    amount: 3500.75, 
-    requestDate: '2023-12-05', 
-    status: 'Pending', 
-    account: '1234 5678 9012 3456', 
-    bank: 'First National Bank'
+    id: 1, 
+    vendorId: 1,
+    vendorName: 'Premium Electronics',
+    amount: 1250.00, 
+    status: 'pending',
+    reference: 'PAY-12345678',
+    bankAccount: '**** **** **** 4321',
+    bankName: 'First National Bank',
+    accountType: 'Business',
+    createdAt: new Date(2023, 6, 15).toISOString(),
+    comment: null
   },
   { 
-    id: 'PAY-10520', 
-    vendor: 'FashionHub', 
-    amount: 1250.50, 
-    requestDate: '2023-12-04', 
-    status: 'Processed', 
-    processedDate: '2023-12-05',
-    account: '2345 6789 0123 4567', 
-    bank: 'Standard Bank'
+    id: 2, 
+    vendorId: 2,
+    vendorName: 'Fashion Hub',
+    amount: 890.50, 
+    status: 'approved',
+    reference: 'PAY-87654321',
+    bankAccount: '**** **** **** 8765',
+    bankName: 'Bank Windhoek',
+    accountType: 'Business',
+    createdAt: new Date(2023, 6, 12).toISOString(),
+    processedAt: new Date(2023, 6, 14).toISOString(),
+    comment: null
   },
   { 
-    id: 'PAY-10519', 
-    vendor: 'HomeDecor', 
-    amount: 870.25, 
-    requestDate: '2023-12-03', 
-    status: 'Pending', 
-    account: '3456 7890 1234 5678', 
-    bank: 'Nedbank'
+    id: 3, 
+    vendorId: 3,
+    vendorName: 'Kitchen Kings', 
+    amount: 450.25, 
+    status: 'rejected',
+    reference: 'PAY-11223344',
+    bankAccount: '**** **** **** 1122',
+    bankName: 'Standard Bank',
+    accountType: 'Savings',
+    createdAt: new Date(2023, 6, 10).toISOString(),
+    processedAt: new Date(2023, 6, 11).toISOString(),
+    comment: 'Incorrect bank details provided'
   },
   { 
-    id: 'PAY-10518', 
-    vendor: 'BookCorner', 
-    amount: 430.00, 
-    requestDate: '2023-12-01', 
-    status: 'Rejected', 
-    rejectionReason: 'Insufficient account information',
-    account: '4567 8901 2345 6789', 
-    bank: 'Bank Windhoek'
+    id: 4, 
+    vendorId: 4,
+    vendorName: 'Book Corner', 
+    amount: 325.75, 
+    status: 'processed',
+    reference: 'PAY-55667788',
+    bankAccount: '**** **** **** 5566',
+    bankName: 'Nedbank',
+    accountType: 'Current',
+    createdAt: new Date(2023, 6, 8).toISOString(),
+    processedAt: new Date(2023, 6, 9).toISOString(),
+    comment: null
   },
   { 
-    id: 'PAY-10517', 
-    vendor: 'GadgetWorld', 
-    amount: 5200.80, 
-    requestDate: '2023-11-30', 
-    status: 'Processed', 
-    processedDate: '2023-12-01',
-    account: '5678 9012 3456 7890', 
-    bank: 'First National Bank'
-  },
+    id: 5, 
+    vendorId: 5,
+    vendorName: 'Fun Toys', 
+    amount: 760.30, 
+    status: 'pending',
+    reference: 'PAY-99887766',
+    bankAccount: '**** **** **** 9988',
+    bankName: 'First National Bank',
+    accountType: 'Business',
+    createdAt: new Date(2023, 6, 7).toISOString(),
+    comment: null
+  }
 ];
 
-type Payment = {
-  id: string;
-  vendor: string;
+type PaymentStatus = 'pending' | 'approved' | 'processed' | 'rejected';
+
+type PaymentRequest = {
+  id: number;
+  vendorId: number;
+  vendorName: string;
   amount: number;
-  requestDate: string;
-  status: 'Pending' | 'Processed' | 'Rejected';
-  processedDate?: string;
-  rejectionReason?: string;
-  account: string;
-  bank: string;
+  status: PaymentStatus;
+  reference: string;
+  bankAccount: string;
+  bankName: string;
+  accountType: string;
+  createdAt: string;
+  processedAt?: string;
+  comment: string | null;
 };
 
 const PaymentProcessing = () => {
-  const [payments, setPayments] = useState<Payment[]>(mockPayments);
+  const [activeTab, setActiveTab] = useState<string>('pending');
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [currentPayment, setCurrentPayment] = useState<Payment | null>(null);
-  const [isProcessDialogOpen, setIsProcessDialogOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedPayment, setSelectedPayment] = useState<PaymentRequest | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [rejectionComment, setRejectionComment] = useState('');
+  const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>(mockPaymentRequests);
 
-  const filteredPayments = payments.filter(payment => {
-    const matchesSearch = 
-      payment.vendor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.id.toLowerCase().includes(searchTerm.toLowerCase());
+  // Filter payments based on tab, search term, and status
+  const filteredPayments = paymentRequests.filter(payment => {
+    // Filter by tab
+    if (activeTab !== 'all' && payment.status !== activeTab) {
+      return false;
+    }
     
-    const matchesStatus = 
-      statusFilter === 'all' || 
-      payment.status.toLowerCase() === statusFilter.toLowerCase();
+    // Filter by search term
+    if (searchTerm && !(
+      payment.vendorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.reference.toLowerCase().includes(searchTerm.toLowerCase())
+    )) {
+      return false;
+    }
     
-    return matchesSearch && matchesStatus;
+    // Filter by status
+    if (statusFilter !== 'all' && payment.status !== statusFilter) {
+      return false;
+    }
+    
+    return true;
   });
 
-  const handleProcessPayment = () => {
-    if (!currentPayment) return;
+  const handleApprovePayment = () => {
+    if (!selectedPayment) return;
     
-    // In a real app, you would make an API call here
-    const updatedPayments = payments.map(payment => 
-      payment.id === currentPayment.id 
-        ? { 
+    // Update the payment status
+    const updatedPayments = paymentRequests.map(payment => 
+      payment.id === selectedPayment.id 
+        ? {
             ...payment, 
-            status: 'Processed' as const, 
-            processedDate: new Date().toISOString().split('T')[0] 
+            status: 'approved' as PaymentStatus,
+            processedAt: new Date().toISOString()
           } 
         : payment
     );
     
-    setPayments(updatedPayments);
-    setIsProcessDialogOpen(false);
+    setPaymentRequests(updatedPayments);
+    setIsApproveDialogOpen(false);
     
     toast({
-      title: "Payment Processed",
-      description: `Payment for ${currentPayment.vendor} (N$ ${currentPayment.amount.toFixed(2)}) has been processed.`,
+      title: "Payment Approved",
+      description: `Payment of N$${selectedPayment.amount.toFixed(2)} to ${selectedPayment.vendorName} has been approved.`,
     });
   };
 
   const handleRejectPayment = () => {
-    if (!currentPayment || !rejectionReason) return;
+    if (!selectedPayment) return;
     
-    // In a real app, you would make an API call here
-    const updatedPayments = payments.map(payment => 
-      payment.id === currentPayment.id 
-        ? { 
+    // Update the payment status
+    const updatedPayments = paymentRequests.map(payment => 
+      payment.id === selectedPayment.id 
+        ? {
             ...payment, 
-            status: 'Rejected' as const, 
-            rejectionReason: rejectionReason
+            status: 'rejected' as PaymentStatus,
+            processedAt: new Date().toISOString(),
+            comment: rejectionComment
           } 
         : payment
     );
     
-    setPayments(updatedPayments);
+    setPaymentRequests(updatedPayments);
     setIsRejectDialogOpen(false);
-    setRejectionReason('');
+    setRejectionComment('');
     
     toast({
       title: "Payment Rejected",
-      description: `Payment for ${currentPayment.vendor} has been rejected.`,
+      description: `Payment of N$${selectedPayment.amount.toFixed(2)} to ${selectedPayment.vendorName} has been rejected.`,
     });
+  };
+
+  const handleProcessPayment = (payment: PaymentRequest) => {
+    // Update the payment status to processed
+    const updatedPayments = paymentRequests.map(p => 
+      p.id === payment.id 
+        ? {
+            ...p, 
+            status: 'processed' as PaymentStatus,
+            processedAt: new Date().toISOString()
+          } 
+        : p
+    );
+    
+    setPaymentRequests(updatedPayments);
+    
+    toast({
+      title: "Payment Processed",
+      description: `Payment of N$${payment.amount.toFixed(2)} to ${payment.vendorName} has been processed.`,
+    });
+  };
+
+  const getStatusBadge = (status: PaymentStatus) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+      case 'approved':
+        return <Badge variant="outline" className="bg-blue-100 text-blue-800">Approved</Badge>;
+      case 'processed':
+        return <Badge variant="outline" className="bg-green-100 text-green-800">Processed</Badge>;
+      case 'rejected':
+        return <Badge variant="outline" className="bg-red-100 text-red-800">Rejected</Badge>;
+      default:
+        return null;
+    }
   };
 
   return (
     <AdminLayout>
       <div className="p-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-          <h1 className="text-3xl font-bold mb-4 md:mb-0">Vendor Payment Processing</h1>
-          
-          <div className="flex flex-col md:flex-row gap-2">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search payments..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 w-full md:w-64"
-              />
-            </div>
-            
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-40">
-                <div className="flex items-center">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <span>Filter</span>
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="processed">Processed</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Button variant="outline">
-              <Calendar className="mr-2 h-4 w-4" />
-              Date Range
-            </Button>
-            
-            <Button variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              Export
-            </Button>
-          </div>
-        </div>
+        <h1 className="text-3xl font-bold mb-6">Payment Processing</h1>
         
-        <Card>
+        <Card className="mb-6">
           <CardHeader>
             <CardTitle>Payment Requests</CardTitle>
-            <CardDescription>Process or reject vendor payout requests</CardDescription>
+            <CardDescription>
+              Manage and process vendor payment requests
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Payment ID</TableHead>
-                  <TableHead>Vendor</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Request Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredPayments.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-6">
-                      No payment requests found.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredPayments.map((payment) => (
-                    <TableRow key={payment.id}>
-                      <TableCell className="font-medium">{payment.id}</TableCell>
-                      <TableCell>{payment.vendor}</TableCell>
-                      <TableCell>N$ {payment.amount.toFixed(2)}</TableCell>
-                      <TableCell>{payment.requestDate}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          className={
-                            payment.status === 'Processed' ? 'bg-green-100 text-green-800' : 
-                            payment.status === 'Rejected' ? 'bg-red-100 text-red-800' : 
-                            'bg-yellow-100 text-yellow-800'
-                          }
-                        >
-                          {payment.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {payment.status === 'Pending' && (
-                          <div className="flex space-x-2">
-                            <Dialog
-                              open={isProcessDialogOpen && currentPayment?.id === payment.id}
-                              onOpenChange={(open) => {
-                                setIsProcessDialogOpen(open);
-                                if (open) {
-                                  setCurrentPayment(payment);
-                                }
-                              }}
-                            >
-                              <DialogTrigger asChild>
-                                <Button variant="outline" size="sm">
-                                  <Check className="mr-1 h-3 w-3" />
-                                  Process
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Process Payment</DialogTitle>
-                                  <DialogDescription>
-                                    Confirm payment processing for this vendor.
-                                  </DialogDescription>
-                                </DialogHeader>
-                                {currentPayment && (
-                                  <div className="py-4 space-y-3">
-                                    <div className="grid grid-cols-2 gap-2">
-                                      <div>
-                                        <p className="text-sm font-medium">Vendor</p>
-                                        <p>{currentPayment.vendor}</p>
-                                      </div>
-                                      <div>
-                                        <p className="text-sm font-medium">Amount</p>
-                                        <p>N$ {currentPayment.amount.toFixed(2)}</p>
-                                      </div>
-                                    </div>
-                                    <div>
-                                      <p className="text-sm font-medium">Bank Details</p>
-                                      <p>{currentPayment.bank}</p>
-                                      <p>Account: {currentPayment.account}</p>
-                                    </div>
-                                    <div className="border-t pt-3 mt-3">
-                                      <p className="text-sm text-muted-foreground">
-                                        By clicking "Process Payment", you confirm that the payment has been processed through your banking system.
-                                      </p>
-                                    </div>
-                                  </div>
-                                )}
-                                <DialogFooter>
-                                  <Button variant="outline" onClick={() => setIsProcessDialogOpen(false)}>
-                                    Cancel
-                                  </Button>
-                                  <Button onClick={handleProcessPayment}>
-                                    Process Payment
-                                  </Button>
-                                </DialogFooter>
-                              </DialogContent>
-                            </Dialog>
-                            
-                            <Dialog
-                              open={isRejectDialogOpen && currentPayment?.id === payment.id}
-                              onOpenChange={(open) => {
-                                setIsRejectDialogOpen(open);
-                                if (open) {
-                                  setCurrentPayment(payment);
-                                } else {
-                                  setRejectionReason('');
-                                }
-                              }}
-                            >
-                              <DialogTrigger asChild>
-                                <Button variant="outline" size="sm">
-                                  <X className="mr-1 h-3 w-3" />
-                                  Reject
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Reject Payment</DialogTitle>
-                                  <DialogDescription>
-                                    Please provide a reason for rejecting this payment request.
-                                  </DialogDescription>
-                                </DialogHeader>
-                                {currentPayment && (
-                                  <div className="py-4 space-y-4">
-                                    <div className="grid grid-cols-2 gap-2">
-                                      <div>
-                                        <p className="text-sm font-medium">Vendor</p>
-                                        <p>{currentPayment.vendor}</p>
-                                      </div>
-                                      <div>
-                                        <p className="text-sm font-medium">Amount</p>
-                                        <p>N$ {currentPayment.amount.toFixed(2)}</p>
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="space-y-2">
-                                      <label className="text-sm font-medium">Rejection Reason</label>
-                                      <Input
-                                        value={rejectionReason}
-                                        onChange={(e) => setRejectionReason(e.target.value)}
-                                        placeholder="e.g., Insufficient account information"
-                                        required
-                                      />
-                                    </div>
-                                  </div>
-                                )}
-                                <DialogFooter>
-                                  <Button variant="outline" onClick={() => setIsRejectDialogOpen(false)}>
-                                    Cancel
-                                  </Button>
-                                  <Button variant="destructive" onClick={handleRejectPayment} disabled={!rejectionReason}>
-                                    Reject Payment
-                                  </Button>
-                                </DialogFooter>
-                              </DialogContent>
-                            </Dialog>
-                          </div>
-                        )}
-                        
-                        {payment.status === 'Processed' && (
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Clock className="mr-1 h-3 w-3" />
-                            {payment.processedDate}
-                          </div>
-                        )}
-                        
-                        {payment.status === 'Rejected' && (
-                          <div className="flex items-center text-sm text-red-500">
-                            <Button variant="link" size="sm" className="p-0 h-auto text-red-500">
-                              View Reason
-                            </Button>
-                          </div>
-                        )}
-                      </TableCell>
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search by vendor or reference..."
+                  className="pl-8"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="processed">Processed</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <Tabs defaultValue="pending" onValueChange={setActiveTab}>
+              <TabsList className="mb-4">
+                <TabsTrigger value="pending">Pending</TabsTrigger>
+                <TabsTrigger value="approved">Approved</TabsTrigger>
+                <TabsTrigger value="processed">Processed</TabsTrigger>
+                <TabsTrigger value="rejected">Rejected</TabsTrigger>
+                <TabsTrigger value="all">All Requests</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value={activeTab}>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Reference</TableHead>
+                      <TableHead>Vendor</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPayments.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center p-4">
+                          No payment requests found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredPayments.map((payment) => (
+                        <TableRow key={payment.id}>
+                          <TableCell className="font-medium">{payment.reference}</TableCell>
+                          <TableCell>{payment.vendorName}</TableCell>
+                          <TableCell>N${payment.amount.toFixed(2)}</TableCell>
+                          <TableCell>{format(new Date(payment.createdAt), 'dd MMM yyyy')}</TableCell>
+                          <TableCell>{getStatusBadge(payment.status)}</TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedPayment(payment);
+                                  setIsDetailsDialogOpen(true);
+                                }}
+                              >
+                                <FileText className="h-4 w-4 mr-1" />
+                                Details
+                              </Button>
+                              
+                              {payment.status === 'pending' && (
+                                <>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-green-600"
+                                    onClick={() => {
+                                      setSelectedPayment(payment);
+                                      setIsApproveDialogOpen(true);
+                                    }}
+                                  >
+                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                    Approve
+                                  </Button>
+                                  
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-red-600"
+                                    onClick={() => {
+                                      setSelectedPayment(payment);
+                                      setIsRejectDialogOpen(true);
+                                    }}
+                                  >
+                                    <XCircle className="h-4 w-4 mr-1" />
+                                    Reject
+                                  </Button>
+                                </>
+                              )}
+                              
+                              {payment.status === 'approved' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-blue-600"
+                                  onClick={() => handleProcessPayment(payment)}
+                                >
+                                  <DollarSign className="h-4 w-4 mr-1" />
+                                  Mark as Processed
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Pending Payments</p>
-                  <h3 className="text-2xl font-bold">
-                    {payments.filter(p => p.status === 'Pending').length}
-                  </h3>
+        {/* Payment Details Dialog */}
+        {selectedPayment && (
+          <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Payment Request Details</DialogTitle>
+                <DialogDescription>
+                  Complete details about this payment request
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-right">Reference</Label>
+                  <div className="col-span-2">{selectedPayment.reference}</div>
                 </div>
-                <div className="p-3 bg-yellow-100 rounded-full">
-                  <Clock className="h-5 w-5 text-yellow-600" />
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-right">Vendor</Label>
+                  <div className="col-span-2">{selectedPayment.vendorName}</div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-right">Amount</Label>
+                  <div className="col-span-2 font-semibold">N${selectedPayment.amount.toFixed(2)}</div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-right">Status</Label>
+                  <div className="col-span-2">{getStatusBadge(selectedPayment.status)}</div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-right">Created Date</Label>
+                  <div className="col-span-2">{format(new Date(selectedPayment.createdAt), 'dd MMM yyyy HH:mm')}</div>
+                </div>
+                {selectedPayment.processedAt && (
+                  <div className="grid grid-cols-3 items-center gap-4">
+                    <Label className="text-right">Processed Date</Label>
+                    <div className="col-span-2">{format(new Date(selectedPayment.processedAt), 'dd MMM yyyy HH:mm')}</div>
+                  </div>
+                )}
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-right">Bank</Label>
+                  <div className="col-span-2">{selectedPayment.bankName}</div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-right">Account</Label>
+                  <div className="col-span-2">{selectedPayment.bankAccount}</div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-right">Account Type</Label>
+                  <div className="col-span-2">{selectedPayment.accountType}</div>
+                </div>
+                {selectedPayment.comment && (
+                  <div className="grid grid-cols-3 items-start gap-4">
+                    <Label className="text-right">Comment</Label>
+                    <div className="col-span-2">{selectedPayment.comment}</div>
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button onClick={() => setIsDetailsDialogOpen(false)}>Close</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+        
+        {/* Approve Payment Dialog */}
+        {selectedPayment && (
+          <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Approve Payment Request</DialogTitle>
+                <DialogDescription>
+                  You are about to approve this payment request. This will mark it as ready for processing.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-muted-foreground">Reference:</span>
+                  <span className="font-medium">{selectedPayment.reference}</span>
+                </div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-muted-foreground">Vendor:</span>
+                  <span className="font-medium">{selectedPayment.vendorName}</span>
+                </div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-muted-foreground">Amount:</span>
+                  <span className="font-semibold">N${selectedPayment.amount.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-muted-foreground">Bank Account:</span>
+                  <span className="font-medium">{selectedPayment.bankAccount}</span>
+                </div>
+                <div className="flex items-center space-x-2 mt-4 p-2 bg-blue-50 rounded text-blue-800">
+                  <Info className="h-4 w-4 shrink-0" />
+                  <p className="text-sm">After approval, the payment must be processed manually through your bank.</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Total Payout Today</p>
-                  <h3 className="text-2xl font-bold">
-                    N$ {payments
-                      .filter(p => p.status === 'Processed' && p.processedDate === new Date().toISOString().split('T')[0])
-                      .reduce((sum, p) => sum + p.amount, 0)
-                      .toFixed(2)}
-                  </h3>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsApproveDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleApprovePayment}>
+                  Approve Payment
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+        
+        {/* Reject Payment Dialog */}
+        {selectedPayment && (
+          <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Reject Payment Request</DialogTitle>
+                <DialogDescription>
+                  Please provide a reason for rejecting this payment request.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-muted-foreground">Reference:</span>
+                  <span className="font-medium">{selectedPayment.reference}</span>
                 </div>
-                <div className="p-3 bg-green-100 rounded-full">
-                  <ArrowUp className="h-5 w-5 text-green-600" />
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-muted-foreground">Vendor:</span>
+                  <span className="font-medium">{selectedPayment.vendorName}</span>
+                </div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-muted-foreground">Amount:</span>
+                  <span className="font-semibold">N${selectedPayment.amount.toFixed(2)}</span>
+                </div>
+                <div className="mt-4">
+                  <Label htmlFor="rejection-reason">Rejection Reason</Label>
+                  <Textarea
+                    id="rejection-reason"
+                    value={rejectionComment}
+                    onChange={(e) => setRejectionComment(e.target.value)}
+                    placeholder="Please provide a reason for rejecting this payment"
+                    className="mt-2"
+                  />
                 </div>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Rejected Requests</p>
-                  <h3 className="text-2xl font-bold">
-                    {payments.filter(p => p.status === 'Rejected').length}
-                  </h3>
-                </div>
-                <div className="p-3 bg-red-100 rounded-full">
-                  <X className="h-5 w-5 text-red-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsRejectDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleRejectPayment}
+                  disabled={!rejectionComment}
+                >
+                  Reject Payment
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </AdminLayout>
   );
 };
 
 export default PaymentProcessing;
+

@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,23 +29,55 @@ const mockVendors = [
   { id: 5, name: 'Fun Toys' },
 ];
 
-const CreateProduct = () => {
-  const [product, setProduct] = useState({
-    name: '',
-    slug: '',
-    description: '',
-    price: '',
-    salePrice: '',
-    cost: '',
-    sku: '',
-    stock: '',
-    categoryId: '',
-    vendorId: '',
-    featured: false,
+// Mock product data for edit mode
+const mockProductsById = {
+  1: {
+    name: 'Smartphone XS',
+    slug: 'smartphone-xs',
+    description: 'High-end smartphone with advanced features',
+    price: '999',
+    salePrice: '899',
+    cost: '700',
+    sku: 'SMX-123',
+    stock: '50',
+    categoryId: '1',
+    vendorId: '1',
+    featured: true,
     published: true,
-    images: [] as string[],
-    specifications: [{ key: '', value: '' }],
-  });
+    images: ['https://placehold.co/400x300/png'],
+    specifications: [
+      { key: 'Screen Size', value: '6.5 inches' },
+      { key: 'Battery', value: '4000 mAh' },
+      { key: 'Storage', value: '128 GB' }
+    ]
+  }
+};
+
+const CreateProduct = () => {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditMode = !!id;
+  
+  const [product, setProduct] = useState(
+    isEditMode && mockProductsById[Number(id)] ? 
+    mockProductsById[Number(id)] : 
+    {
+      name: '',
+      slug: '',
+      description: '',
+      price: '',
+      salePrice: '',
+      cost: '',
+      sku: '',
+      stock: '',
+      categoryId: '',
+      vendorId: '',
+      featured: false,
+      published: true,
+      images: [] as string[],
+      specifications: [{ key: '', value: '' }],
+    }
+  );
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -115,15 +148,18 @@ const CreateProduct = () => {
     console.log('Submitting product:', product);
     
     toast({
-      title: "Product Created",
-      description: `${product.name} has been created successfully.`,
+      title: isEditMode ? "Product Updated" : "Product Created",
+      description: `${product.name} has been ${isEditMode ? 'updated' : 'created'} successfully.`,
     });
+
+    // Redirect back to products list
+    navigate('/admin/products');
   };
 
   return (
     <AdminLayout>
       <div className="p-6">
-        <h1 className="text-3xl font-bold mb-6">Create Product</h1>
+        <h1 className="text-3xl font-bold mb-6">{isEditMode ? 'Edit' : 'Create'} Product</h1>
         
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -406,7 +442,10 @@ const CreateProduct = () => {
           </div>
           
           <div className="mt-6 flex justify-end">
-            <Button type="submit">Create Product</Button>
+            <Button type="button" variant="outline" className="mr-2" onClick={() => navigate('/admin/products')}>
+              Cancel
+            </Button>
+            <Button type="submit">{isEditMode ? 'Update' : 'Create'} Product</Button>
           </div>
         </form>
       </div>

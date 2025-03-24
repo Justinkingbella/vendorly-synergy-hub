@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Package, Search, Filter, Trash2, Edit, Plus, 
   ArrowUpDown, MoreHorizontal, Check, X 
@@ -61,6 +62,7 @@ const mockProducts = Array.from({ length: 10 }).map((_, i) => ({
 }));
 
 const AdminProducts = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -96,12 +98,20 @@ const AdminProducts = () => {
     setProductToDelete(null);
   };
 
+  const handleAddProduct = () => {
+    navigate('/admin/products/create');
+  };
+
+  const handleEditProduct = (id: number) => {
+    navigate(`/admin/products/edit/${id}`);
+  };
+
   return (
     <AdminLayout>
       <div className="p-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
           <h1 className="text-3xl font-bold mb-4 md:mb-0">Products</h1>
-          <Button>
+          <Button onClick={handleAddProduct}>
             <Plus className="mr-2 h-4 w-4" />
             Add New Product
           </Button>
@@ -202,7 +212,7 @@ const AdminProducts = () => {
                     </TableCell>
                     <TableCell>{product.category}</TableCell>
                     <TableCell>{product.vendor}</TableCell>
-                    <TableCell>${product.price.toFixed(2)}</TableCell>
+                    <TableCell>N${product.price.toFixed(2)}</TableCell>
                     <TableCell>{product.stock}</TableCell>
                     <TableCell>
                       <Badge variant={product.status === 'Active' ? 'default' : 'secondary'} className={
@@ -219,7 +229,7 @@ const AdminProducts = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditProduct(product.id)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>

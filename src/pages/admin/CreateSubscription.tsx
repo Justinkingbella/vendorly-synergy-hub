@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,15 +11,43 @@ import { toast } from '@/hooks/use-toast';
 import { Check, Plus, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
-const CreateSubscription = () => {
-  const [plan, setPlan] = useState({
-    name: '',
-    price: '',
-    description: '',
+// Mock subscription data for edit mode
+const mockSubscriptionsById = {
+  1: {
+    name: 'Basic Plan',
+    price: '199',
+    description: 'Perfect for small vendors getting started',
     popular: false,
-    features: [''],
-    notIncluded: ['']
-  });
+    features: ['Reduced commission rates (8.5%)', 'Up to 20 products', 'Basic analytics'],
+    notIncluded: ['Priority support', 'Advanced analytics', 'Featured product placement']
+  },
+  2: {
+    name: 'Premium Plan',
+    price: '499',
+    description: 'Best value for growing businesses',
+    popular: true,
+    features: ['Low commission rates (5%)', 'Unlimited products', 'Priority support', 'Advanced analytics'],
+    notIncluded: ['Featured product placement']
+  }
+};
+
+const CreateSubscription = () => {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditMode = !!id;
+  
+  const [plan, setPlan] = useState(
+    isEditMode && mockSubscriptionsById[Number(id)] ?
+    mockSubscriptionsById[Number(id)] :
+    {
+      name: '',
+      price: '',
+      description: '',
+      popular: false,
+      features: [''],
+      notIncluded: ['']
+    }
+  );
 
   const handleFeatureAdd = () => {
     setPlan({
@@ -76,31 +105,24 @@ const CreateSubscription = () => {
     console.log('Submitting plan:', plan);
     
     toast({
-      title: "Subscription Plan Created",
-      description: `The ${plan.name} plan has been created successfully.`,
+      title: isEditMode ? "Subscription Plan Updated" : "Subscription Plan Created",
+      description: `The ${plan.name} plan has been ${isEditMode ? 'updated' : 'created'} successfully.`,
     });
     
-    // Reset form
-    setPlan({
-      name: '',
-      price: '',
-      description: '',
-      popular: false,
-      features: [''],
-      notIncluded: ['']
-    });
+    // Navigate back to subscriptions page
+    navigate('/admin/subscriptions');
   };
 
   return (
     <AdminLayout>
       <div className="p-6">
-        <h1 className="text-3xl font-bold mb-6">Create Subscription Plan</h1>
+        <h1 className="text-3xl font-bold mb-6">{isEditMode ? 'Edit' : 'Create'} Subscription Plan</h1>
         
         <form onSubmit={handleSubmit}>
           <Card>
             <CardHeader>
               <CardTitle>Plan Details</CardTitle>
-              <CardDescription>Create a new subscription plan for vendors</CardDescription>
+              <CardDescription>{isEditMode ? 'Edit' : 'Create a new'} subscription plan for vendors</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -211,8 +233,15 @@ const CreateSubscription = () => {
                 </Button>
               </div>
             </CardContent>
-            <CardFooter>
-              <Button type="submit">Create Subscription Plan</Button>
+            <CardFooter className="flex justify-between">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => navigate('/admin/subscriptions')}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">{isEditMode ? 'Update' : 'Create'} Subscription Plan</Button>
             </CardFooter>
           </Card>
         </form>

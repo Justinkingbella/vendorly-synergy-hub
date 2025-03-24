@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ShoppingCart, Heart, Menu, Search, User, Package, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,6 +42,7 @@ const categories = [
 
 const StoreFrontNav = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const location = useLocation();
   
   return (
     <header className="border-b">
@@ -68,7 +69,10 @@ const StoreFrontNav = () => {
                 <NavigationMenuList>
                   <NavigationMenuItem>
                     <Link to="/">
-                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                      <NavigationMenuLink className={cn(
+                        navigationMenuTriggerStyle(),
+                        location.pathname === '/' && "bg-accent text-accent-foreground"
+                      )}>
                         Home
                       </NavigationMenuLink>
                     </Link>
@@ -106,7 +110,10 @@ const StoreFrontNav = () => {
                   
                   <NavigationMenuItem>
                     <Link to="/products">
-                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                      <NavigationMenuLink className={cn(
+                        navigationMenuTriggerStyle(),
+                        location.pathname === '/products' && "bg-accent text-accent-foreground"
+                      )}>
                         Shop
                       </NavigationMenuLink>
                     </Link>
@@ -114,7 +121,10 @@ const StoreFrontNav = () => {
                   
                   <NavigationMenuItem>
                     <Link to="/deals">
-                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                      <NavigationMenuLink className={cn(
+                        navigationMenuTriggerStyle(),
+                        location.pathname === '/deals' && "bg-accent text-accent-foreground"
+                      )}>
                         Deals
                       </NavigationMenuLink>
                     </Link>
@@ -122,7 +132,10 @@ const StoreFrontNav = () => {
                   
                   <NavigationMenuItem>
                     <Link to="/vendors">
-                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                      <NavigationMenuLink className={cn(
+                        navigationMenuTriggerStyle(),
+                        location.pathname === '/vendors' && "bg-accent text-accent-foreground"
+                      )}>
                         Vendors
                       </NavigationMenuLink>
                     </Link>
@@ -170,6 +183,7 @@ const StoreFrontNav = () => {
                 variant="ghost" 
                 size="icon" 
                 onClick={() => setIsSearchOpen(true)}
+                aria-label="Search"
               >
                 <Search className="h-5 w-5" />
               </Button>
@@ -177,14 +191,14 @@ const StoreFrontNav = () => {
             
             {/* User Menu */}
             <Link to="/auth">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" aria-label="Account">
                 <User className="h-5 w-5" />
               </Button>
             </Link>
             
             {/* Wishlist */}
             <Link to="/wishlist">
-              <Button variant="ghost" size="icon" className="relative">
+              <Button variant="ghost" size="icon" className="relative" aria-label="Wishlist">
                 <Heart className="h-5 w-5" />
                 <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center">3</Badge>
               </Button>
@@ -192,7 +206,7 @@ const StoreFrontNav = () => {
             
             {/* Cart */}
             <Link to="/cart">
-              <Button variant="ghost" size="icon" className="relative">
+              <Button variant="ghost" size="icon" className="relative" aria-label="Cart">
                 <ShoppingCart className="h-5 w-5" />
                 <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center">2</Badge>
               </Button>
@@ -201,29 +215,29 @@ const StoreFrontNav = () => {
             {/* Mobile Menu */}
             <Sheet>
               <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" aria-label="Menu">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right">
                 <nav className="flex flex-col space-y-4 mt-8">
                   <SheetClose asChild>
-                    <Link to="/" className="py-2 hover:text-primary">Home</Link>
+                    <Link to="/" className={cn("py-2 hover:text-primary", location.pathname === '/' && "text-primary font-medium")}>Home</Link>
                   </SheetClose>
                   <SheetClose asChild>
-                    <Link to="/categories" className="py-2 hover:text-primary">Categories</Link>
+                    <Link to="/categories" className={cn("py-2 hover:text-primary", location.pathname === '/categories' && "text-primary font-medium")}>Categories</Link>
                   </SheetClose>
                   <SheetClose asChild>
-                    <Link to="/products" className="py-2 hover:text-primary">Shop</Link>
+                    <Link to="/products" className={cn("py-2 hover:text-primary", location.pathname === '/products' && "text-primary font-medium")}>Shop</Link>
                   </SheetClose>
                   <SheetClose asChild>
-                    <Link to="/deals" className="py-2 hover:text-primary">Deals</Link>
+                    <Link to="/deals" className={cn("py-2 hover:text-primary", location.pathname === '/deals' && "text-primary font-medium")}>Deals</Link>
                   </SheetClose>
                   <SheetClose asChild>
-                    <Link to="/vendors" className="py-2 hover:text-primary">Vendors</Link>
+                    <Link to="/vendors" className={cn("py-2 hover:text-primary", location.pathname === '/vendors' && "text-primary font-medium")}>Vendors</Link>
                   </SheetClose>
                   <SheetClose asChild>
-                    <Link to="/account" className="py-2 hover:text-primary">My Account</Link>
+                    <Link to="/account" className={cn("py-2 hover:text-primary", location.pathname === '/account' && "text-primary font-medium")}>My Account</Link>
                   </SheetClose>
                 </nav>
               </SheetContent>
