@@ -27,6 +27,7 @@ import VendorOrders from "./pages/vendor/Orders";
 import VendorEarnings from "./pages/vendor/Earnings";
 import VendorSettings from "./pages/vendor/Settings";
 import VendorSubscription from "./pages/vendor/Subscription";
+import VendorPayouts from "./pages/vendor/Payouts";
 
 // Customer routes
 import CustomerDashboard from "./pages/customer/Dashboard";
@@ -73,6 +74,7 @@ const App = () => (
           <Route path="/vendor/earnings" element={<VendorEarnings />} />
           <Route path="/vendor/settings" element={<VendorSettings />} />
           <Route path="/vendor/subscription" element={<VendorSubscription />} />
+          <Route path="/vendor/payouts" element={<VendorPayouts />} />
           <Route path="/vendor/register" element={<Auth />} />
           
           {/* Customer Routes */}

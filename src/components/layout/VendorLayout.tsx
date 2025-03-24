@@ -37,6 +37,7 @@ const VendorLayout = ({ children }: { children: React.ReactNode }) => {
     { icon: Package, label: 'Products', path: '/vendor/products' },
     { icon: ShoppingCart, label: 'Orders', path: '/vendor/orders' },
     { icon: Wallet, label: 'Earnings', path: '/vendor/earnings' },
+    { icon: CreditCard, label: 'Payouts', path: '/vendor/payouts' },
     { icon: CreditCard, label: 'Subscription', path: '/vendor/subscription' },
     { icon: Settings, label: 'Settings', path: '/vendor/settings' },
   ];
@@ -142,7 +143,7 @@ const VendorLayout = ({ children }: { children: React.ReactNode }) => {
                   <link.icon className="h-4 w-4" />
                   {link.label}
                   {link.label === 'Subscription' && (
-                    <Badge className="ml-auto" variant="outline">Premium</Badge>
+                    <Badge variant="outline" className="ml-auto">Premium</Badge>
                   )}
                 </Link>
               );
