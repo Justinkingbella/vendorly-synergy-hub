@@ -30,6 +30,8 @@ import AdminSubscriptions from "./pages/admin/Subscriptions";
 import AdminCreateProduct from "./pages/admin/CreateProduct";
 import AdminCreateSubscription from "./pages/admin/CreateSubscription";
 import AdminPaymentProcessing from "./pages/admin/PaymentProcessing";
+// We need to import the Categories component from admin
+import AdminCategories from "./pages/admin/Categories";
 
 // Vendor routes
 import VendorDashboard from "./pages/vendor/Dashboard";
