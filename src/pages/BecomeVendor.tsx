@@ -9,6 +9,7 @@ import {
   BarChart, ShieldCheck, HelpCircle, ArrowRight 
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import SEO from '@/components/layout/SEO';
 import {
   Accordion,
   AccordionContent,
@@ -19,6 +20,11 @@ import {
 const BecomeVendor = () => {
   return (
     <StoreLayout>
+      <SEO 
+        title="Become a Vendor" 
+        description="Join thousands of vendors selling to millions of customers across Namibia on MarketHub."
+        keywords="vendor registration, sell online, marketplace seller, ecommerce platform"
+      />
       <div className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <div className="text-center mb-16">

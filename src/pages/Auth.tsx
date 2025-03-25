@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,14 +9,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
 import StoreLayout from '@/components/layout/StoreLayout';
+import SEO from '@/components/layout/SEO';
 
 type UserRole = 'customer' | 'vendor';
 
 export default function Auth() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [userRole, setUserRole] = useState<UserRole>('customer');
   
+  // Check if we're at the vendor registration path
+  useEffect(() => {
+    if (location.pathname === '/vendor/register') {
+      setActiveTab('register');
+      setUserRole('vendor');
+    }
+  }, [location.pathname]);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -44,9 +54,22 @@ export default function Auth() {
       setActiveTab('login');
     }
   };
+
+  // Set page title based on context
+  const pageTitle = location.pathname === '/vendor/register' 
+    ? 'Vendor Registration' 
+    : (activeTab === 'login' ? 'Login' : 'Register');
   
   return (
     <StoreLayout>
+      <SEO 
+        title={pageTitle} 
+        description={
+          location.pathname === '/vendor/register'
+            ? 'Register as a vendor on MarketHub and start selling your products.'
+            : 'Login or create an account to shop on MarketHub.'
+        }
+      />
       <div className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
         <Card className="w-full max-w-md">
           <div className="flex justify-between items-center p-6">
