@@ -1,488 +1,471 @@
-
 import React, { useState } from 'react';
 import CustomerLayout from '@/components/layout/CustomerLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Bell, CreditCard, Key, LocateIcon, Mail, User } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/ui/avatar';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Trash2, Camera, LogOut, Key, Bell, CreditCard, Mail, User, Shield } from 'lucide-react';
 
 const CustomerSettings = () => {
-  // Personal details form state
-  const [personalDetails, setPersonalDetails] = useState({
-    firstName: 'Sarah',
-    lastName: 'Connor',
-    email: 'sarah.connor@example.com',
-    phone: '+1 (555) 123-4567'
-  });
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Password form state
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
-
-  // Addresses state
-  const [addresses, setAddresses] = useState([
-    { 
-      id: 1,
-      type: 'Home',
-      default: true,
-      fullName: 'Sarah Connor',
-      address: '123 Resistance St',
-      city: 'Los Angeles',
-      state: 'CA',
-      zip: '90001',
-      country: 'USA'
-    },
-    {
-      id: 2,
-      type: 'Work',
-      default: false,
-      fullName: 'Sarah Connor',
-      address: '456 Judgment Ave',
-      city: 'San Francisco',
-      state: 'CA',
-      zip: '94105',
-      country: 'USA'
-    }
-  ]);
-
-  // Notification preferences
-  const [notifications, setNotifications] = useState({
-    orderUpdates: true,
-    promotions: true,
-    newProducts: false,
-    newsletters: true
-  });
-
-  // Handle personal details changes
-  const handlePersonalDetailsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setPersonalDetails((prev) => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Handle password changes
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setPasswordForm((prev) => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Handle notification changes
-  const handleNotificationChange = (name: string, checked: boolean) => {
-    setNotifications((prev) => ({
-      ...prev,
-      [name]: checked
-    }));
-  };
-
-  // Update personal details
-  const updatePersonalDetails = (e: React.FormEvent) => {
+  const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success('Personal details updated successfully!');
-  };
-
-  // Update password
-  const updatePassword = (e: React.FormEvent) => {
-    e.preventDefault();
+    setIsLoading(true);
     
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast.error('New passwords do not match!');
-      return;
-    }
-
-    // Reset password form
-    setPasswordForm({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
-
-    toast.success('Password updated successfully!');
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
+      toast({
+        title: "Profile updated",
+        description: "Your profile information has been updated successfully.",
+      });
+    }, 1000);
   };
 
-  // Set default address
-  const setDefaultAddress = (id: number) => {
-    setAddresses(addresses.map(address => ({
-      ...address,
-      default: address.id === id
-    })));
-    toast.success('Default address updated!');
-  };
-
-  // Update notification settings
-  const saveNotificationSettings = (e: React.FormEvent) => {
+  const handleSavePassword = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success('Notification preferences updated!');
+    setIsLoading(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
+      toast({
+        title: "Password updated",
+        description: "Your password has been updated successfully.",
+      });
+    }, 1000);
   };
 
   return (
     <CustomerLayout>
-      <div className="p-6">
-        <h1 className="text-3xl font-bold mb-6">Account Settings</h1>
+      <div className="container py-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+          <p className="text-muted-foreground">
+            Manage your account settings and preferences.
+          </p>
+        </div>
         
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="w-full justify-start">
-            <TabsTrigger value="profile" className="flex items-center gap-2">
+        <Tabs defaultValue="profile" className="space-y-4">
+          <TabsList className="w-full md:w-auto justify-start overflow-x-auto p-0 h-auto">
+            <TabsTrigger value="profile" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
               <User className="h-4 w-4" />
-              Profile
+              <span className="hidden sm:inline">Profile</span>
             </TabsTrigger>
-            <TabsTrigger value="addresses" className="flex items-center gap-2">
-              <LocateIcon className="h-4 w-4" />
-              Addresses
-            </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-2">
+            <TabsTrigger value="security" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
               <Key className="h-4 w-4" />
-              Security
+              <span className="hidden sm:inline">Security</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <TabsTrigger value="notifications" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
               <Bell className="h-4 w-4" />
-              Notifications
+              <span className="hidden sm:inline">Notifications</span>
             </TabsTrigger>
-            <TabsTrigger value="payment" className="flex items-center gap-2">
+            <TabsTrigger value="payment" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
               <CreditCard className="h-4 w-4" />
-              Payment
+              <span className="hidden sm:inline">Payment</span>
+            </TabsTrigger>
+            <TabsTrigger value="privacy" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
+              <Shield className="h-4 w-4" />
+              <span className="hidden sm:inline">Privacy</span>
             </TabsTrigger>
           </TabsList>
           
-          {/* Profile Settings */}
+          {/* Profile Tab */}
           <TabsContent value="profile">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>
-                  Update your personal information and profile settings
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <Avatar className="w-16 h-16">
-                    <AvatarImage src="/avatar.png" alt="Sarah Connor" />
-                    <AvatarFallback>SC</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <Button variant="outline" size="sm">Change Picture</Button>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      JPG, GIF or PNG. Max size of 2MB
-                    </p>
-                  </div>
-                </div>
-                
-                <form onSubmit={updatePersonalDetails}>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input 
-                        id="firstName" 
-                        name="firstName" 
-                        value={personalDetails.firstName} 
-                        onChange={handlePersonalDetailsChange}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle>Profile Information</CardTitle>
+                  <CardDescription>
+                    Update your personal information.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSaveProfile}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName">First name</Label>
+                        <Input id="firstName" defaultValue="Sarah" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="lastName">Last name</Label>
+                        <Input id="lastName" defaultValue="Connor" />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2 mb-4">
+                      <Label htmlFor="email">Email address</Label>
+                      <Input id="email" type="email" defaultValue="sarah.connor@example.com" />
+                    </div>
+                    
+                    <div className="space-y-2 mb-4">
+                      <Label htmlFor="phone">Phone number</Label>
+                      <Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="country">Country</Label>
+                        <Select defaultValue="us">
+                          <SelectTrigger id="country">
+                            <SelectValue placeholder="Select country" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="us">United States</SelectItem>
+                            <SelectItem value="ca">Canada</SelectItem>
+                            <SelectItem value="uk">United Kingdom</SelectItem>
+                            <SelectItem value="au">Australia</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="timezone">Timezone</Label>
+                        <Select defaultValue="pst">
+                          <SelectTrigger id="timezone">
+                            <SelectValue placeholder="Select timezone" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pst">Pacific Time (PST)</SelectItem>
+                            <SelectItem value="mst">Mountain Time (MST)</SelectItem>
+                            <SelectItem value="cst">Central Time (CST)</SelectItem>
+                            <SelectItem value="est">Eastern Time (EST)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2 mb-4">
+                      <Label htmlFor="bio">Bio</Label>
+                      <textarea
+                        id="bio"
+                        className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        rows={3}
+                        defaultValue="I'm a tech enthusiast and avid online shopper. I love finding great deals on electronics and home goods."
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input 
-                        id="lastName" 
-                        name="lastName" 
-                        value={personalDetails.lastName} 
-                        onChange={handlePersonalDetailsChange}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input 
-                        id="email" 
-                        name="email" 
-                        type="email" 
-                        value={personalDetails.email} 
-                        onChange={handlePersonalDetailsChange}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input 
-                        id="phone" 
-                        name="phone" 
-                        value={personalDetails.phone} 
-                        onChange={handlePersonalDetailsChange}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4">
-                    <Label htmlFor="bio">About</Label>
-                    <Textarea 
-                      id="bio" 
-                      placeholder="Tell us a little about yourself..." 
-                      className="resize-none" 
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      This information may be visible to other users.
-                    </p>
-                  </div>
-                </form>
-              </CardContent>
-              <CardFooter>
-                <Button onClick={updatePersonalDetails}>Save Changes</Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-          
-          {/* Addresses */}
-          <TabsContent value="addresses">
-            <Card>
-              <CardHeader>
-                <CardTitle>Shipping & Billing Addresses</CardTitle>
-                <CardDescription>
-                  Manage your shipping and billing addresses
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-6 md:grid-cols-2">
-                  {addresses.map((address) => (
-                    <Card key={address.id} className={address.default ? 'border-primary' : ''}>
-                      <CardHeader className="pb-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <CardTitle className="text-base">{address.type}</CardTitle>
-                            {address.default && (
-                              <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded">
-                                Default
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-sm">
-                          <p className="font-medium">{address.fullName}</p>
-                          <p>{address.address}</p>
-                          <p>{address.city}, {address.state} {address.zip}</p>
-                          <p>{address.country}</p>
-                        </div>
-                      </CardContent>
-                      <CardFooter className="flex justify-between pt-0">
-                        <Button variant="outline" size="sm">Edit</Button>
-                        {!address.default && (
-                          <Button 
-                            variant="secondary" 
-                            size="sm"
-                            onClick={() => setDefaultAddress(address.id)}
-                          >
-                            Set as Default
-                          </Button>
-                        )}
-                      </CardFooter>
-                    </Card>
-                  ))}
-                  
-                  <Card className="border-dashed flex items-center justify-center h-full min-h-[180px]">
-                    <Button variant="outline">
-                      Add New Address
+                    
+                    <Button type="submit" className="mt-4" disabled={isLoading}>
+                      {isLoading ? 'Saving...' : 'Save changes'}
                     </Button>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
+                  </form>
+                </CardContent>
+              </Card>
+              
+              <div className="flex flex-col gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Your Avatar</CardTitle>
+                    <CardDescription>
+                      Click on the avatar to upload a custom one from your files.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col items-center">
+                    <div className="relative mb-4">
+                      <Avatar className="h-32 w-32">
+                        <AvatarImage alt="Sarah Connor" src="/avatar.png" />
+                        <AvatarFallback>SC</AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground rounded-full p-1.5 cursor-pointer">
+                        <Camera className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button variant="outline" className="w-full text-xs" size="sm">Remove</Button>
+                      <Button className="w-full text-xs" size="sm">Upload</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Delete Account</CardTitle>
+                    <CardDescription>
+                      Permanently delete your account and all data.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" className="w-full">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete Account
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete your account and remove your data from our servers.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction className="bg-destructive text-destructive-foreground">Delete Account</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </TabsContent>
           
-          {/* Security Settings */}
+          {/* Security Tab */}
           <TabsContent value="security">
-            <Card>
-              <CardHeader>
-                <CardTitle>Change Password</CardTitle>
-                <CardDescription>
-                  Update your password for better security
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={updatePassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="currentPassword">Current Password</Label>
-                    <Input 
-                      id="currentPassword" 
-                      name="currentPassword" 
-                      type="password" 
-                      value={passwordForm.currentPassword}
-                      onChange={handlePasswordChange}
-                    />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle>Password</CardTitle>
+                  <CardDescription>
+                    Change your password.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSavePassword}>
+                    <div className="space-y-2 mb-4">
+                      <Label htmlFor="currentPassword">Current password</Label>
+                      <Input id="currentPassword" type="password" />
+                    </div>
+                    
+                    <div className="space-y-2 mb-4">
+                      <Label htmlFor="newPassword">New password</Label>
+                      <Input id="newPassword" type="password" />
+                    </div>
+                    
+                    <div className="space-y-2 mb-4">
+                      <Label htmlFor="confirmPassword">Confirm password</Label>
+                      <Input id="confirmPassword" type="password" />
+                    </div>
+                    
+                    <Button type="submit" className="mt-4" disabled={isLoading}>
+                      {isLoading ? 'Updating...' : 'Update password'}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Two-Factor Authentication</CardTitle>
+                  <CardDescription>
+                    Add an extra layer of security to your account.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">SMS Authentication</p>
+                      <p className="text-sm text-muted-foreground">Receive authentication codes via SMS.</p>
+                    </div>
+                    <Switch defaultChecked />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="newPassword">New Password</Label>
-                    <Input 
-                      id="newPassword" 
-                      name="newPassword" 
-                      type="password" 
-                      value={passwordForm.newPassword}
-                      onChange={handlePasswordChange}
-                    />
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Authenticator App</p>
+                      <p className="text-sm text-muted-foreground">Use an authenticator app for 2FA.</p>
+                    </div>
+                    <Switch />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                    <Input 
-                      id="confirmPassword" 
-                      name="confirmPassword" 
-                      type="password" 
-                      value={passwordForm.confirmPassword}
-                      onChange={handlePasswordChange}
-                    />
+                  <Separator />
+                  <Button variant="outline" className="w-full">
+                    Configure 2FA
+                  </Button>
+                </CardContent>
+              </Card>
+              
+              <Card className="md:col-span-3">
+                <CardHeader>
+                  <CardTitle>Login Sessions</CardTitle>
+                  <CardDescription>
+                    Manage your active sessions.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {[
+                      {
+                        device: 'MacBook Pro',
+                        location: 'San Francisco, CA',
+                        ip: '192.168.1.1',
+                        date: 'Currently active',
+                        current: true
+                      },
+                      {
+                        device: 'iPhone 13',
+                        location: 'San Francisco, CA',
+                        ip: '192.168.1.2',
+                        date: 'Last accessed 2 hours ago',
+                        current: false
+                      },
+                      {
+                        device: 'Windows PC',
+                        location: 'Los Angeles, CA',
+                        ip: '192.168.1.3',
+                        date: 'Last accessed 3 days ago',
+                        current: false
+                      }
+                    ].map((session, i) => (
+                      <div key={i} className="flex items-center justify-between py-2">
+                        <div>
+                          <p className="font-medium flex items-center">
+                            {session.device}
+                            {session.current && (
+                              <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">Current</span>
+                            )}
+                          </p>
+                          <p className="text-sm text-muted-foreground">{session.location} • {session.ip}</p>
+                          <p className="text-xs text-muted-foreground">{session.date}</p>
+                        </div>
+                        {!session.current && (
+                          <Button variant="outline" size="sm">Logout</Button>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                </form>
-              </CardContent>
-              <CardFooter>
-                <Button onClick={updatePassword}>Update Password</Button>
-              </CardFooter>
-            </Card>
-            
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Two-Factor Authentication</CardTitle>
-                <CardDescription>
-                  Add an extra layer of security to your account
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Two-factor authentication</p>
-                    <p className="text-sm text-muted-foreground">
-                      Secure your account with two-factor authentication
-                    </p>
-                  </div>
-                  <Switch />
-                </div>
-              </CardContent>
-            </Card>
+                  <Button variant="outline" className="mt-4" disabled={isLoading}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout from all devices
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
           
-          {/* Notification Settings */}
+          {/* Other tabs would be implemented similarly */}
           <TabsContent value="notifications">
             <Card>
               <CardHeader>
                 <CardTitle>Notification Preferences</CardTitle>
                 <CardDescription>
-                  Manage how and when you receive notifications
+                  Choose what types of notifications you receive.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <form onSubmit={saveNotificationSettings} className="space-y-4">
-                  <div className="flex items-center justify-between py-2">
-                    <div>
-                      <p className="font-medium">Order Updates</p>
-                      <p className="text-sm text-muted-foreground">
-                        Receive notifications about your order status
-                      </p>
-                    </div>
-                    <Switch 
-                      checked={notifications.orderUpdates} 
-                      onCheckedChange={(checked) => handleNotificationChange('orderUpdates', checked)}
-                    />
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Order Updates</p>
+                    <p className="text-sm text-muted-foreground">Receive notifications about your orders.</p>
                   </div>
-                  
-                  <div className="flex items-center justify-between py-2">
-                    <div>
-                      <p className="font-medium">Promotions & Discounts</p>
-                      <p className="text-sm text-muted-foreground">
-                        Receive notifications about sales and promotions
-                      </p>
-                    </div>
-                    <Switch 
-                      checked={notifications.promotions} 
-                      onCheckedChange={(checked) => handleNotificationChange('promotions', checked)}
-                    />
+                  <Switch defaultChecked />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Promotional Emails</p>
+                    <p className="text-sm text-muted-foreground">Receive emails about sales and promotions.</p>
                   </div>
-                  
-                  <div className="flex items-center justify-between py-2">
-                    <div>
-                      <p className="font-medium">New Products</p>
-                      <p className="text-sm text-muted-foreground">
-                        Be the first to know about new products
-                      </p>
-                    </div>
-                    <Switch 
-                      checked={notifications.newProducts} 
-                      onCheckedChange={(checked) => handleNotificationChange('newProducts', checked)}
-                    />
+                  <Switch defaultChecked />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Price Drop Alerts</p>
+                    <p className="text-sm text-muted-foreground">Get notified when items in your wishlist drop in price.</p>
                   </div>
-                  
-                  <div className="flex items-center justify-between py-2">
-                    <div>
-                      <p className="font-medium">Newsletters</p>
-                      <p className="text-sm text-muted-foreground">
-                        Receive our weekly newsletter
-                      </p>
-                    </div>
-                    <Switch 
-                      checked={notifications.newsletters} 
-                      onCheckedChange={(checked) => handleNotificationChange('newsletters', checked)}
-                    />
+                  <Switch defaultChecked />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">New Product Announcements</p>
+                    <p className="text-sm text-muted-foreground">Be the first to know about new products.</p>
                   </div>
-                </form>
+                  <Switch />
+                </div>
+                <Button className="mt-4">Save preferences</Button>
               </CardContent>
-              <CardFooter>
-                <Button onClick={saveNotificationSettings}>Save Preferences</Button>
-              </CardFooter>
             </Card>
           </TabsContent>
           
-          {/* Payment Methods */}
           <TabsContent value="payment">
             <Card>
               <CardHeader>
                 <CardTitle>Payment Methods</CardTitle>
                 <CardDescription>
-                  Manage your payment methods and billing information
+                  Manage your saved payment methods.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="border rounded-md p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-gray-100 p-2 rounded-md">
-                        <CreditCard className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="font-medium">Visa ending in 4242</p>
-                        <p className="text-sm text-muted-foreground">Expires 12/2025</p>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">Remove</Button>
+                  {/* Payment methods would go here */}
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground mb-4">You don't have any payment methods saved yet.</p>
+                    <Button>Add Payment Method</Button>
                   </div>
-                  
-                  <div className="border rounded-md p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-gray-100 p-2 rounded-md">
-                        <CreditCard className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="font-medium">Mastercard ending in 5432</p>
-                        <p className="text-sm text-muted-foreground">Expires 08/2024</p>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">Remove</Button>
-                  </div>
-                  
-                  <Button variant="outline" className="w-full">Add Payment Method</Button>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="privacy">
+            <Card>
+              <CardHeader>
+                <CardTitle>Privacy Settings</CardTitle>
+                <CardDescription>
+                  Manage your privacy preferences.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Public Profile</p>
+                    <p className="text-sm text-muted-foreground">Allow other users to see your profile information.</p>
+                  </div>
+                  <Switch />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Activity Tracking</p>
+                    <p className="text-sm text-muted-foreground">Allow us to track your activity to improve your shopping experience.</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Data Sharing</p>
+                    <p className="text-sm text-muted-foreground">Allow us to share anonymous usage data with our partners.</p>
+                  </div>
+                  <Switch />
+                </div>
+                <Button className="mt-4">Save preferences</Button>
               </CardContent>
             </Card>
           </TabsContent>
