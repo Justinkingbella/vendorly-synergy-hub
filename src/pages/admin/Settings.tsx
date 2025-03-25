@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -19,12 +18,30 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import { Settings, Mail, Bell, Shield, CreditCard, Wrench, AlertCircle } from 'lucide-react';
+import { 
+  Settings, 
+  Mail, 
+  Bell, 
+  Shield, 
+  CreditCard, 
+  Wrench, 
+  AlertCircle,
+  Paintbrush,
+  FileText,
+  LayoutTemplate,
+  Image,
+  Store
+} from 'lucide-react';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { useToast } from '@/hooks/use-toast';
+import AppEditorStore from '@/components/admin/app-editor/AppEditorStore';
+import AppEditorPages from '@/components/admin/app-editor/AppEditorPages';
+import AppEditorLayout from '@/components/admin/app-editor/AppEditorLayout';
+import AppEditorNavFooter from '@/components/admin/app-editor/AppEditorNavFooter';
 
 export default function AdminSettings() {
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("general");
   const [generalSettings, setGeneralSettings] = useState({
     siteName: 'MarketHub',
     siteDescription: 'Multi-vendor marketplace for all your shopping needs',
@@ -73,8 +90,8 @@ export default function AdminSettings() {
           <p className="text-muted-foreground">Manage platform settings and configurations</p>
         </div>
 
-        <Tabs defaultValue="general" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4 md:w-auto md:inline-flex">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 lg:w-auto lg:inline-flex">
             <TabsTrigger value="general" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               <span className="md:inline">General</span>
@@ -90,6 +107,10 @@ export default function AdminSettings() {
             <TabsTrigger value="maintenance" className="flex items-center gap-2">
               <Wrench className="h-4 w-4" />
               <span className="md:inline">Maintenance</span>
+            </TabsTrigger>
+            <TabsTrigger value="app-editor" className="flex items-center gap-2">
+              <Paintbrush className="h-4 w-4" />
+              <span className="md:inline">App Editor</span>
             </TabsTrigger>
           </TabsList>
 
@@ -382,6 +403,47 @@ export default function AdminSettings() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="app-editor">
+            <div className="grid gap-4">
+              <Tabs defaultValue="store" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+                  <TabsTrigger value="store" className="flex items-center gap-2">
+                    <Store className="h-4 w-4" />
+                    <span>Store Info</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="layout" className="flex items-center gap-2">
+                    <LayoutTemplate className="h-4 w-4" />
+                    <span>Layout</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="nav-footer" className="flex items-center gap-2">
+                    <Image className="h-4 w-4" />
+                    <span>Nav & Footer</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="pages" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    <span>Pages</span>
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="store" className="mt-4">
+                  <AppEditorStore />
+                </TabsContent>
+                
+                <TabsContent value="layout" className="mt-4">
+                  <AppEditorLayout />
+                </TabsContent>
+                
+                <TabsContent value="nav-footer" className="mt-4">
+                  <AppEditorNavFooter />
+                </TabsContent>
+                
+                <TabsContent value="pages" className="mt-4">
+                  <AppEditorPages />
+                </TabsContent>
+              </Tabs>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
