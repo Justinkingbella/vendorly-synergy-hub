@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -30,7 +29,6 @@ import AdminSubscriptions from "./pages/admin/Subscriptions";
 import AdminCreateProduct from "./pages/admin/CreateProduct";
 import AdminCreateSubscription from "./pages/admin/CreateSubscription";
 import AdminPaymentProcessing from "./pages/admin/PaymentProcessing";
-// We need to import the Categories component from admin
 import AdminCategories from "./pages/admin/Categories";
 
 // Vendor routes
@@ -70,7 +68,7 @@ const App = () => (
           <Route path="/deals" element={<Deals />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
-          <Route path="/wishlist" element={<Products />} />
+          <Route path="/wishlist" element={<CustomerWishlist />} />
           <Route path="/become-vendor" element={<BecomeVendor />} />
           
           {/* Admin Routes */}

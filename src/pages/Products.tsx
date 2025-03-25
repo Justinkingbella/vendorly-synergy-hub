@@ -1,5 +1,5 @@
-
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import StoreLayout from '@/components/layout/StoreLayout';
 import { useParams, Link } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { 
@@ -270,7 +270,7 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-export default function Products() {
+const Products = () => {
   const { id } = useParams();
   const { toast } = useToast();
   const [products, setProducts] = useState<any[]>([]);
@@ -291,9 +291,7 @@ export default function Products() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   
-  // Load products
   useEffect(() => {
-    // Simulate API call
     const loadProducts = () => {
       setIsLoading(true);
       setTimeout(() => {
@@ -305,7 +303,6 @@ export default function Products() {
     loadProducts();
   }, []);
   
-  // Set initial category from URL parameter
   useEffect(() => {
     if (id) {
       const category = categories.find(cat => cat.id.toString() === id)?.name;
@@ -315,11 +312,9 @@ export default function Products() {
     }
   }, [id]);
   
-  // Apply filters
   useEffect(() => {
     let result = [...products];
     
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(product => 
@@ -329,29 +324,24 @@ export default function Products() {
       );
     }
     
-    // Filter by category
     if (selectedCategory) {
       result = result.filter(product => product.category === selectedCategory);
     }
     
-    // Filter by brands
     if (selectedBrands.length > 0) {
       result = result.filter(product => selectedBrands.includes(product.brand));
     }
     
-    // Filter by tags
     if (selectedTags.length > 0) {
       result = result.filter(product => 
         product.tags.some((tag: string) => selectedTags.includes(tag))
       );
     }
     
-    // Filter by price range
     result = result.filter(product => 
       product.price >= priceRange[0] && product.price <= priceRange[1]
     );
     
-    // Apply additional filters
     if (filterOptions.onSale) {
       result = result.filter(product => product.isOnSale);
     }
@@ -364,7 +354,6 @@ export default function Products() {
       result = result.filter(product => product.isNew);
     }
     
-    // Apply sorting
     switch (sortOption) {
       case 'price-low-high':
         result.sort((a, b) => a.price - b.price);
@@ -387,17 +376,14 @@ export default function Products() {
     setFilteredProducts(result);
   }, [products, selectedCategory, selectedBrands, selectedTags, priceRange, filterOptions, sortOption, searchQuery]);
   
-  // Handle category selection
   const handleCategoryChange = (category: string | null) => {
     if (selectedCategory === category) {
-      // If clicking on already selected category, deselect it
       setSelectedCategory(null);
     } else {
       setSelectedCategory(category);
     }
   };
   
-  // Handle brand selection
   const handleBrandChange = (brand: string) => {
     if (selectedBrands.includes(brand)) {
       setSelectedBrands(selectedBrands.filter(b => b !== brand));
@@ -406,7 +392,6 @@ export default function Products() {
     }
   };
   
-  // Handle tag selection
   const handleTagChange = (tag: string) => {
     if (selectedTags.includes(tag)) {
       setSelectedTags(selectedTags.filter(t => t !== tag));
@@ -415,15 +400,12 @@ export default function Products() {
     }
   };
   
-  // Get all unique tags from products
   const allTags = Array.from(new Set(products.flatMap(product => product.tags)));
   
-  // Handle price range change
   const handlePriceRangeChange = (values: number[]) => {
     setPriceRange(values);
   };
   
-  // Handle filter option change
   const handleFilterOptionChange = (option: keyof typeof filterOptions) => {
     setFilterOptions({
       ...filterOptions,
@@ -431,7 +413,6 @@ export default function Products() {
     });
   };
   
-  // Handle clear all filters
   const handleClearFilters = () => {
     setSelectedCategory(null);
     setSelectedBrands([]);
@@ -452,9 +433,7 @@ export default function Products() {
     });
   };
   
-  // Add to cart handler
   const handleAddToCart = (productId: number, event?: React.MouseEvent) => {
-    // Prevent triggering the link click when clicking the add to cart button
     if (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -469,9 +448,7 @@ export default function Products() {
     }
   };
   
-  // Add to wishlist handler
   const handleAddToWishlist = (productId: number, event?: React.MouseEvent) => {
-    // Prevent triggering the link click when clicking the wishlist button
     if (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -486,7 +463,6 @@ export default function Products() {
     }
   };
   
-  // Product Grid Card Component
   const ProductGridCard = ({ product }: { product: any }) => (
     <Card className="overflow-hidden transition-all duration-200 hover:shadow-md h-full">
       <div className="relative h-48 overflow-hidden bg-gray-100">
@@ -555,7 +531,6 @@ export default function Products() {
     </Card>
   );
   
-  // Product List Card Component
   const ProductListCard = ({ product }: { product: any }) => (
     <Card className="overflow-hidden transition-all duration-200 hover:shadow-md">
       <div className="flex flex-col sm:flex-row">
@@ -641,7 +616,6 @@ export default function Products() {
     </Card>
   );
   
-  // Desktop Filter Sidebar
   const FilterSidebar = () => (
     <div className="space-y-6">
       <div>
@@ -786,7 +760,6 @@ export default function Products() {
     </div>
   );
   
-  // Mobile Filter Sheet
   const FilterSheet = () => (
     <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
       <SheetTrigger asChild>
@@ -815,9 +788,8 @@ export default function Products() {
   );
   
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        {/* Header and breadcrumbs */}
+    <StoreLayout>
+      <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold mb-2">
             {selectedCategory ? selectedCategory : 'All Products'}
@@ -827,7 +799,6 @@ export default function Products() {
           </p>
         </div>
         
-        {/* Search and filter bar */}
         <div className="flex flex-col md:flex-row gap-4 items-center mb-6">
           <div className="relative w-full md:w-80">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -891,7 +862,6 @@ export default function Products() {
           </div>
         </div>
         
-        {/* Filters chips */}
         {(selectedCategory || selectedBrands.length > 0 || selectedTags.length > 0 || filterOptions.onSale || filterOptions.inStock || filterOptions.newArrivals) && (
           <div className="flex flex-wrap gap-2 mb-6">
             {selectedCategory && (
@@ -955,14 +925,11 @@ export default function Products() {
           </div>
         )}
         
-        {/* Main content with filters and products */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Desktop filters sidebar */}
           <div className="hidden md:block">
             <FilterSidebar />
           </div>
           
-          {/* Products grid */}
           <div className="md:col-span-3">
             {isLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
@@ -1004,7 +971,6 @@ export default function Products() {
               </div>
             )}
             
-            {/* Pagination */}
             {filteredProducts.length > 0 && (
               <div className="flex justify-center mt-8">
                 <div className="flex items-center space-x-2">
@@ -1029,6 +995,8 @@ export default function Products() {
           </div>
         </div>
       </div>
-    </div>
+    </StoreLayout>
   );
-}
+};
+
+export default Products;
