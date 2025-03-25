@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import AdminLayout from '@/components/layout/AdminLayout';
@@ -12,6 +11,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -24,8 +24,25 @@ import {
 import { Search, FileText, DollarSign, CheckCircle, XCircle, Info } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Mock data for payment requests
-const mockPaymentRequests = [
+type PaymentStatus = 'pending' | 'approved' | 'processed' | 'rejected';
+
+type PaymentRequest = {
+  id: number;
+  vendorId: number;
+  vendorName: string;
+  amount: number;
+  status: PaymentStatus;
+  reference: string;
+  bankAccount: string;
+  bankName: string;
+  accountType: string;
+  createdAt: string;
+  processedAt?: string;
+  comment: string | null;
+};
+
+// Mock data for payment requests with correct type
+const mockPaymentRequests: PaymentRequest[] = [
   { 
     id: 1, 
     vendorId: 1,
@@ -96,23 +113,6 @@ const mockPaymentRequests = [
   }
 ];
 
-type PaymentStatus = 'pending' | 'approved' | 'processed' | 'rejected';
-
-type PaymentRequest = {
-  id: number;
-  vendorId: number;
-  vendorName: string;
-  amount: number;
-  status: PaymentStatus;
-  reference: string;
-  bankAccount: string;
-  bankName: string;
-  accountType: string;
-  createdAt: string;
-  processedAt?: string;
-  comment: string | null;
-};
-
 const PaymentProcessing = () => {
   const [activeTab, setActiveTab] = useState<string>('pending');
   const [searchTerm, setSearchTerm] = useState('');
@@ -124,14 +124,11 @@ const PaymentProcessing = () => {
   const [rejectionComment, setRejectionComment] = useState('');
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>(mockPaymentRequests);
 
-  // Filter payments based on tab, search term, and status
   const filteredPayments = paymentRequests.filter(payment => {
-    // Filter by tab
     if (activeTab !== 'all' && payment.status !== activeTab) {
       return false;
     }
     
-    // Filter by search term
     if (searchTerm && !(
       payment.vendorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.reference.toLowerCase().includes(searchTerm.toLowerCase())
@@ -139,7 +136,6 @@ const PaymentProcessing = () => {
       return false;
     }
     
-    // Filter by status
     if (statusFilter !== 'all' && payment.status !== statusFilter) {
       return false;
     }
@@ -150,7 +146,6 @@ const PaymentProcessing = () => {
   const handleApprovePayment = () => {
     if (!selectedPayment) return;
     
-    // Update the payment status
     const updatedPayments = paymentRequests.map(payment => 
       payment.id === selectedPayment.id 
         ? {
@@ -173,7 +168,6 @@ const PaymentProcessing = () => {
   const handleRejectPayment = () => {
     if (!selectedPayment) return;
     
-    // Update the payment status
     const updatedPayments = paymentRequests.map(payment => 
       payment.id === selectedPayment.id 
         ? {
@@ -196,7 +190,6 @@ const PaymentProcessing = () => {
   };
 
   const handleProcessPayment = (payment: PaymentRequest) => {
-    // Update the payment status to processed
     const updatedPayments = paymentRequests.map(p => 
       p.id === payment.id 
         ? {
@@ -372,7 +365,6 @@ const PaymentProcessing = () => {
           </CardContent>
         </Card>
         
-        {/* Payment Details Dialog */}
         {selectedPayment && (
           <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
             <DialogContent className="sm:max-w-md">
@@ -435,7 +427,6 @@ const PaymentProcessing = () => {
           </Dialog>
         )}
         
-        {/* Approve Payment Dialog */}
         {selectedPayment && (
           <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
             <DialogContent className="sm:max-w-md">
@@ -479,7 +470,6 @@ const PaymentProcessing = () => {
           </Dialog>
         )}
         
-        {/* Reject Payment Dialog */}
         {selectedPayment && (
           <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
             <DialogContent className="sm:max-w-md">
@@ -534,4 +524,3 @@ const PaymentProcessing = () => {
 };
 
 export default PaymentProcessing;
-
