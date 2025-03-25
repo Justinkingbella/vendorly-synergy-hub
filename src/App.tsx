@@ -9,10 +9,13 @@ import NotFound from "./pages/NotFound";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import Auth from "./pages/Auth";
+import AdminAuth from "./pages/AdminAuth";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Deals from "./pages/Deals";
 import Categories from "./pages/Categories";
+import VendorStore from "./pages/VendorStore";
+import VendorsList from "./pages/VendorsList";
 import BecomeVendor from "./pages/BecomeVendor";
 
 // Admin routes
@@ -24,7 +27,6 @@ import AdminOrders from "./pages/admin/Orders";
 import AdminSettings from "./pages/admin/Settings";
 import AdminCommissions from "./pages/admin/Commissions";
 import AdminSubscriptions from "./pages/admin/Subscriptions";
-import AdminCategories from "./pages/admin/Categories";
 import AdminCreateProduct from "./pages/admin/CreateProduct";
 import AdminCreateSubscription from "./pages/admin/CreateSubscription";
 import AdminPaymentProcessing from "./pages/admin/PaymentProcessing";
@@ -58,10 +60,11 @@ const App = () => (
           <Route path="/products" element={<Products />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/admin/auth" element={<AdminAuth />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/category/:id" element={<Products />} />
-          <Route path="/vendors" element={<Products />} />
-          <Route path="/vendor/:id" element={<Products />} />
+          <Route path="/vendors" element={<VendorsList />} />
+          <Route path="/vendor/:id" element={<VendorStore />} />
           <Route path="/deals" element={<Deals />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
