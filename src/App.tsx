@@ -9,6 +9,11 @@ import NotFound from "./pages/NotFound";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import Auth from "./pages/Auth";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
+import Deals from "./pages/Deals";
+import Categories from "./pages/Categories";
+import BecomeVendor from "./pages/BecomeVendor";
 
 // Admin routes
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -53,13 +58,15 @@ const App = () => (
           <Route path="/products" element={<Products />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/categories" element={<Products />} />
+          <Route path="/categories" element={<Categories />} />
           <Route path="/category/:id" element={<Products />} />
           <Route path="/vendors" element={<Products />} />
           <Route path="/vendor/:id" element={<Products />} />
-          <Route path="/deals" element={<Products />} />
-          <Route path="/cart" element={<Products />} />
+          <Route path="/deals" element={<Deals />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
           <Route path="/wishlist" element={<Products />} />
+          <Route path="/become-vendor" element={<BecomeVendor />} />
           
           {/* Admin Routes */}
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
