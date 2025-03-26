@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Search, ShoppingCart, User, Menu, X, ChevronDown, 
-  Heart, LogIn, CheckCircle
+  Heart, LogIn, CheckCircle, Moon, Sun
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useStoreSettings } from '@/context/StoreSettingsContext';
+import { useTheme } from '@/components/ThemeProvider';
 
 const categories = [
   { name: 'Electronics', href: '/category/electronics' },
@@ -27,9 +29,12 @@ const categories = [
 ];
 
 export default function Navbar() {
+  const { storeInfo, getActiveNavLinks } = useStoreSettings();
+  const { theme, setTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const activeNavLinks = getActiveNavLinks();
   
   // Dummy cart count for demonstration
   const cartItemCount = 3;
@@ -57,46 +62,53 @@ export default function Navbar() {
     </Link>
   );
 
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
   return (
-    <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+    <header className={`sticky top-0 z-40 w-full transition-all duration-300 ${
       isScrolled ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm py-3' : 'bg-white dark:bg-gray-900 py-4'
     }`}>
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <span className="text-xl font-bold">VendorHub</span>
+            {storeInfo.logo ? (
+              <img src={storeInfo.logo} alt={storeInfo.storeName} className="h-8" />
+            ) : (
+              <span className="text-xl font-bold">{storeInfo.storeName}</span>
+            )}
           </Link>
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center space-x-6">
-            <NavItem href="/">Home</NavItem>
-            
-            {/* Categories dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors px-1 py-1.5">
-                  Categories <ChevronDown className="ml-1 h-4 w-4" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-56">
-                <DropdownMenuLabel>Browse Categories</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {categories.map((category) => (
-                  <DropdownMenuItem key={category.name} asChild>
-                    <Link to={category.href}>{category.name}</Link>
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/categories">View All Categories</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
-            <NavItem href="/products">All Products</NavItem>
-            <NavItem href="/vendors">Vendors</NavItem>
-            <NavItem href="/deals">Deals</NavItem>
+            {activeNavLinks.map(link => (
+              link.text.toLowerCase() === 'categories' ? (
+                <DropdownMenu key={link.id}>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors px-1 py-1.5">
+                      Categories <ChevronDown className="ml-1 h-4 w-4" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="w-56">
+                    <DropdownMenuLabel>Browse Categories</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {categories.map((category) => (
+                      <DropdownMenuItem key={category.name} asChild>
+                        <Link to={category.href}>{category.name}</Link>
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/categories">View All Categories</Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <NavItem key={link.id} href={link.url}>{link.text}</NavItem>
+              )
+            ))}
           </nav>
 
           {/* Search, Cart, User */}
@@ -110,6 +122,16 @@ export default function Navbar() {
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
+
+            {/* Theme Toggle */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleTheme}
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
 
             {/* Cart */}
             <Button variant="ghost" size="icon" className="relative" asChild>
@@ -193,7 +215,16 @@ export default function Navbar() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               </div>
               
-              <Link to="/" className="py-2 px-3 hover:bg-secondary rounded-md">Home</Link>
+              {activeNavLinks.map(link => (
+                <Link 
+                  key={link.id} 
+                  to={link.url} 
+                  className="py-2 px-3 hover:bg-secondary rounded-md"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {link.text}
+                </Link>
+              ))}
               
               <div className="py-2 px-3 border-b border-gray-100 dark:border-gray-800">
                 <span className="font-medium mb-2 block">Categories</span>
@@ -203,6 +234,7 @@ export default function Navbar() {
                       key={category.name} 
                       to={category.href} 
                       className="text-sm text-muted-foreground hover:text-primary py-1"
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
                       {category.name}
                     </Link>
@@ -210,22 +242,32 @@ export default function Navbar() {
                 </div>
               </div>
               
-              <Link to="/products" className="py-2 px-3 hover:bg-secondary rounded-md">All Products</Link>
-              <Link to="/vendors" className="py-2 px-3 hover:bg-secondary rounded-md">Vendors</Link>
-              <Link to="/deals" className="py-2 px-3 hover:bg-secondary rounded-md">Deals</Link>
-              
               <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
                 {isAuthenticated ? (
                   <>
-                    <Link to="/customer/dashboard" className="py-2 px-3 hover:bg-secondary rounded-md flex items-center">
+                    <Link 
+                      to="/customer/dashboard" 
+                      className="py-2 px-3 hover:bg-secondary rounded-md flex items-center"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
                       <User className="h-4 w-4 mr-2" />
                       My Account
                     </Link>
-                    <Link to="/customer/orders" className="py-2 px-3 hover:bg-secondary rounded-md block">Orders</Link>
+                    <Link 
+                      to="/customer/orders" 
+                      className="py-2 px-3 hover:bg-secondary rounded-md block"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Orders
+                    </Link>
                     <button className="w-full text-left py-2 px-3 hover:bg-secondary rounded-md">Sign Out</button>
                   </>
                 ) : (
-                  <Button className="w-full" asChild>
+                  <Button 
+                    className="w-full" 
+                    asChild
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
                     <Link to="/auth">
                       <LogIn className="h-4 w-4 mr-2" />
                       Sign In

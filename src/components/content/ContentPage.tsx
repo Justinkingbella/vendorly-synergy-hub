@@ -2,55 +2,67 @@
 import React from 'react';
 import StoreLayout from '@/components/layout/StoreLayout';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 interface ContentPageProps {
   pageId: string;
 }
 
-const ContentPage = ({ pageId }: ContentPageProps) => {
+const ContentPage: React.FC<ContentPageProps> = ({ pageId }) => {
   const { pages } = useStoreSettings();
-  const pageData = pages[pageId];
+  const navigate = useNavigate();
+  const pageContent = pages[pageId];
 
-  if (!pageData) {
-    return (
-      <StoreLayout pageId={pageId}>
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-3xl md:text-4xl font-bold mb-3">Page Not Found</h1>
-            <p className="text-lg text-muted-foreground">
-              The page you are looking for does not exist or has been removed.
-            </p>
-          </div>
-        </div>
-      </StoreLayout>
-    );
+  useEffect(() => {
+    // If page doesn't exist or is not active, redirect to 404
+    if (!pageContent || !pageContent.isActive) {
+      navigate('/not-found');
+    }
+  }, [pageContent, navigate]);
+
+  if (!pageContent || !pageContent.isActive) {
+    return null;
   }
 
   return (
-    <StoreLayout pageId={pageId}>
-      <div className="container mx-auto px-4 py-8">
-        {pageData.bannerImage && (
-          <div className="w-full aspect-[3/1] overflow-hidden rounded-lg mb-8">
-            <img 
-              src={pageData.bannerImage} 
-              alt={pageData.title} 
-              className="w-full h-full object-cover"
-            />
+    <StoreLayout title={pageContent.seoTitle} description={pageContent.seoDescription} pageId={pageId}>
+      {/* Page Banner */}
+      {pageContent.bannerImage && (
+        <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden bg-black">
+          <img 
+            src={pageContent.bannerImage} 
+            alt={pageContent.title} 
+            className="absolute inset-0 w-full h-full object-cover opacity-80"
+          />
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2">
+              {pageContent.title}
+            </h1>
+            <p className="text-lg md:text-xl text-white/90">
+              {pageContent.subtitle}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Page Content */}
+      <div className="container mx-auto py-12 px-4 md:px-6">
+        {/* If no banner, display the title and subtitle here */}
+        {!pageContent.bannerImage && (
+          <div className="text-center mb-12">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">
+              {pageContent.title}
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              {pageContent.subtitle}
+            </p>
           </div>
         )}
-        
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h1 className="text-3xl md:text-4xl font-bold mb-3">{pageData.title}</h1>
-            <p className="text-lg text-muted-foreground">{pageData.subtitle}</p>
-          </div>
-          
-          <div className="bg-card border rounded-lg p-8">
-            <div 
-              className="prose prose-lg max-w-none"
-              dangerouslySetInnerHTML={{ __html: pageData.content }}
-            />
-          </div>
+
+        {/* Main Content */}
+        <div className="max-w-3xl mx-auto prose dark:prose-invert prose-lg prose-headings:font-semibold prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary">
+          <div dangerouslySetInnerHTML={{ __html: pageContent.content }} />
         </div>
       </div>
     </StoreLayout>

@@ -4,6 +4,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import SEO from '@/components/layout/SEO';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
+import MarketingBannerDisplay from '@/components/marketing/MarketingBannerDisplay';
 
 interface StoreLayoutProps {
   children: React.ReactNode;
@@ -45,6 +46,7 @@ const StoreLayout = ({
         title={seoTitle} 
         description={seoDescription} 
       />
+      <MarketingBannerDisplay />
       <Navbar />
       <main className="flex-1">{children}</main>
       <Footer />

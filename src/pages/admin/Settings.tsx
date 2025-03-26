@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -30,7 +31,10 @@ import {
   FileText,
   LayoutTemplate,
   Image,
-  Store
+  Store,
+  Palette,
+  Megaphone,
+  Copyright,
 } from 'lucide-react';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { useToast } from '@/hooks/use-toast';
@@ -38,6 +42,9 @@ import AppEditorStore from '@/components/admin/app-editor/AppEditorStore';
 import AppEditorPages from '@/components/admin/app-editor/AppEditorPages';
 import AppEditorLayout from '@/components/admin/app-editor/AppEditorLayout';
 import AppEditorNavFooter from '@/components/admin/app-editor/AppEditorNavFooter';
+import AppEditorTheme from '@/components/admin/app-editor/AppEditorTheme';
+import AppEditorMarketing from '@/components/admin/app-editor/AppEditorMarketing';
+import AppEditorCopyright from '@/components/admin/app-editor/AppEditorCopyright';
 
 export default function AdminSettings() {
   const { toast } = useToast();
@@ -408,7 +415,7 @@ export default function AdminSettings() {
           <TabsContent value="app-editor">
             <div className="grid gap-4">
               <Tabs defaultValue="store" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+                <TabsList className="grid w-full grid-cols-2 md:grid-cols-7">
                   <TabsTrigger value="store" className="flex items-center gap-2">
                     <Store className="h-4 w-4" />
                     <span>Store Info</span>
@@ -420,6 +427,18 @@ export default function AdminSettings() {
                   <TabsTrigger value="nav-footer" className="flex items-center gap-2">
                     <Image className="h-4 w-4" />
                     <span>Nav & Footer</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="theme" className="flex items-center gap-2">
+                    <Palette className="h-4 w-4" />
+                    <span>Theme</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="marketing" className="flex items-center gap-2">
+                    <Megaphone className="h-4 w-4" />
+                    <span>Marketing</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="copyright" className="flex items-center gap-2">
+                    <Copyright className="h-4 w-4" />
+                    <span>Copyright</span>
                   </TabsTrigger>
                   <TabsTrigger value="pages" className="flex items-center gap-2">
                     <FileText className="h-4 w-4" />
@@ -437,6 +456,18 @@ export default function AdminSettings() {
                 
                 <TabsContent value="nav-footer" className="mt-4">
                   <AppEditorNavFooter />
+                </TabsContent>
+                
+                <TabsContent value="theme" className="mt-4">
+                  <AppEditorTheme />
+                </TabsContent>
+                
+                <TabsContent value="marketing" className="mt-4">
+                  <AppEditorMarketing />
+                </TabsContent>
+                
+                <TabsContent value="copyright" className="mt-4">
+                  <AppEditorCopyright />
                 </TabsContent>
                 
                 <TabsContent value="pages" className="mt-4">
