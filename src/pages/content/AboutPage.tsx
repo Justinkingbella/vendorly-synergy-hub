@@ -26,10 +26,12 @@ const AboutPage = () => {
             <p className="text-lg text-muted-foreground">{pageData.subtitle}</p>
           </div>
           
-          <div 
-            className="prose prose-lg max-w-none"
-            dangerouslySetInnerHTML={{ __html: pageData.content }}
-          />
+          <div className="bg-card border rounded-lg p-8">
+            <div 
+              className="prose prose-lg max-w-none"
+              dangerouslySetInnerHTML={{ __html: pageData.content }}
+            />
+          </div>
         </div>
       </div>
     </StoreLayout>
