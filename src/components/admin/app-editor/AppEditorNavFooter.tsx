@@ -24,13 +24,12 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { 
   Trash2, 
   Plus, 
-  Grip, 
-  LinkIcon,
-  MenuIcon, 
+  GripVertical, 
+  Link as LinkIcon,
+  Menu as MenuIcon, 
   LayoutList
 } from 'lucide-react';
 
@@ -51,64 +50,65 @@ const footerColumnSchema = z.object({
   }))
 });
 
+const newLinkSchema = z.object({
+  newLinkText: z.string().min(1, "Link text is required"),
+  newLinkUrl: z.string().min(1, "URL is required"),
+});
+
+const newColumnSchema = z.object({
+  newColumnTitle: z.string().min(1, "Column title is required"),
+});
+
+const newFooterLinkSchema = z.object({
+  columnId: z.string().min(1, "Column is required"),
+  newLinkText: z.string().min(1, "Link text is required"),
+  newLinkUrl: z.string().min(1, "URL is required"),
+});
+
 const AppEditorNavFooter = () => {
   const { toast } = useToast();
-  const { navLinks, footerColumns, updateNavLinks, updateFooterColumns } = useStoreSettings();
   
-  const [currentLinks, setCurrentLinks] = useState(navLinks);
-  const [currentFooterColumns, setCurrentFooterColumns] = useState(footerColumns);
-
+  // Placeholder data - in a real app this would come from a context or api
+  const [navLinks, setNavLinks] = useState([
+    { id: 'nav-1', text: 'Home', url: '/', isActive: true },
+    { id: 'nav-2', text: 'Shop', url: '/shop', isActive: true },
+    { id: 'nav-3', text: 'Vendors', url: '/vendors', isActive: true },
+    { id: 'nav-4', text: 'About', url: '/about', isActive: true },
+    { id: 'nav-5', text: 'Contact', url: '/contact', isActive: true },
+  ]);
+  
+  const [footerColumns, setFooterColumns] = useState([
+    {
+      id: 'col-1',
+      title: 'Company',
+      links: [
+        { id: 'link-1', text: 'About Us', url: '/about' },
+        { id: 'link-2', text: 'Contact', url: '/contact' },
+        { id: 'link-3', text: 'Terms', url: '/terms' },
+      ]
+    },
+    {
+      id: 'col-2',
+      title: 'Resources',
+      links: [
+        { id: 'link-4', text: 'FAQs', url: '/faqs' },
+        { id: 'link-5', text: 'Blog', url: '/blog' },
+      ]
+    }
+  ]);
+  
   // Nav Links Form
   const navForm = useForm({
+    resolver: zodResolver(newLinkSchema),
     defaultValues: {
       newLinkText: '',
       newLinkUrl: '',
     }
   });
 
-  // Handle adding a new nav link
-  const handleAddNavLink = (data: { newLinkText: string, newLinkUrl: string }) => {
-    const newLink = {
-      id: `nav-${Date.now()}`,
-      text: data.newLinkText,
-      url: data.newLinkUrl,
-      isActive: true
-    };
-    
-    const updatedLinks = [...currentLinks, newLink];
-    setCurrentLinks(updatedLinks);
-    
-    navForm.reset({
-      newLinkText: '',
-      newLinkUrl: '',
-    });
-  };
-
-  // Handle removing a nav link
-  const handleRemoveNavLink = (linkId: string) => {
-    const updatedLinks = currentLinks.filter(link => link.id !== linkId);
-    setCurrentLinks(updatedLinks);
-  };
-
-  // Handle toggling a nav link active state
-  const handleToggleNavLinkActive = (linkId: string, isActive: boolean) => {
-    const updatedLinks = currentLinks.map(link => 
-      link.id === linkId ? { ...link, isActive } : link
-    );
-    setCurrentLinks(updatedLinks);
-  };
-
-  // Handle saving nav links
-  const handleSaveNavLinks = () => {
-    updateNavLinks(currentLinks);
-    toast({
-      title: "Navigation links updated",
-      description: "Your navigation menu has been successfully updated.",
-    });
-  };
-
   // Footer Column Form
-  const footerForm = useForm({
+  const footerColumnForm = useForm({
+    resolver: zodResolver(newColumnSchema),
     defaultValues: {
       newColumnTitle: '',
     }
@@ -116,6 +116,7 @@ const AppEditorNavFooter = () => {
 
   // Footer Link Form
   const footerLinkForm = useForm({
+    resolver: zodResolver(newFooterLinkSchema),
     defaultValues: {
       columnId: '',
       newLinkText: '',
@@ -123,128 +124,162 @@ const AppEditorNavFooter = () => {
     }
   });
 
+  // Handle adding a new nav link
+  const handleAddNavLink = (data: z.infer<typeof newLinkSchema>) => {
+    const newLink = {
+      id: `nav-${Date.now()}`,
+      text: data.newLinkText,
+      url: data.newLinkUrl,
+      isActive: true
+    };
+    
+    setNavLinks([...navLinks, newLink]);
+    
+    navForm.reset({
+      newLinkText: '',
+      newLinkUrl: '',
+    });
+    
+    toast({
+      title: "Navigation link added",
+      description: `Added "${data.newLinkText}" to the navigation menu.`,
+    });
+  };
+
+  // Handle removing a nav link
+  const handleRemoveNavLink = (linkId: string) => {
+    setNavLinks(navLinks.filter(link => link.id !== linkId));
+    toast({
+      title: "Navigation link removed",
+      description: "The link has been removed from the navigation menu.",
+    });
+  };
+
+  // Handle toggling a nav link active state
+  const handleToggleNavLinkActive = (linkId: string, isActive: boolean) => {
+    setNavLinks(navLinks.map(link => 
+      link.id === linkId ? { ...link, isActive } : link
+    ));
+  };
+
+  // Handle saving nav links
+  const handleSaveNavLinks = () => {
+    toast({
+      title: "Navigation links updated",
+      description: "Your navigation menu has been successfully updated.",
+    });
+  };
+
   // Handle adding a new footer column
-  const handleAddFooterColumn = (data: { newColumnTitle: string }) => {
+  const handleAddFooterColumn = (data: z.infer<typeof newColumnSchema>) => {
     const newColumn = {
       id: `footer-col-${Date.now()}`,
       title: data.newColumnTitle,
       links: []
     };
     
-    const updatedColumns = [...currentFooterColumns, newColumn];
-    setCurrentFooterColumns(updatedColumns);
+    setFooterColumns([...footerColumns, newColumn]);
     
-    footerForm.reset({
+    footerColumnForm.reset({
       newColumnTitle: '',
+    });
+    
+    toast({
+      title: "Footer column added",
+      description: `Added "${data.newColumnTitle}" column to the footer.`,
     });
   };
 
   // Handle removing a footer column
   const handleRemoveFooterColumn = (columnId: string) => {
-    const updatedColumns = currentFooterColumns.filter(column => column.id !== columnId);
-    setCurrentFooterColumns(updatedColumns);
-  };
-
-  // Handle adding a link to a footer column
-  const handleAddFooterLink = (data: { columnId: string, newLinkText: string, newLinkUrl: string }) => {
-    const newLink = {
-      id: `footer-link-${Date.now()}`,
-      text: data.newLinkText,
-      url: data.newLinkUrl,
-    };
-    
-    const updatedColumns = currentFooterColumns.map(column => 
-      column.id === data.columnId 
-        ? { ...column, links: [...column.links, newLink] } 
-        : column
-    );
-    
-    setCurrentFooterColumns(updatedColumns);
-    
-    footerLinkForm.reset({
-      columnId: '',
-      newLinkText: '',
-      newLinkUrl: '',
+    setFooterColumns(footerColumns.filter(column => column.id !== columnId));
+    toast({
+      title: "Footer column removed",
+      description: "The column has been removed from the footer.",
     });
   };
 
-  // Handle removing a link from a footer column
+  // Handle adding a new footer link
+  const handleAddFooterLink = (data: z.infer<typeof newFooterLinkSchema>) => {
+    const newLink = {
+      id: `footer-link-${Date.now()}`,
+      text: data.newLinkText,
+      url: data.newLinkUrl
+    };
+    
+    setFooterColumns(footerColumns.map(column => 
+      column.id === data.columnId 
+        ? { ...column, links: [...column.links, newLink] } 
+        : column
+    ));
+    
+    footerLinkForm.reset({
+      columnId: data.columnId,
+      newLinkText: '',
+      newLinkUrl: '',
+    });
+    
+    toast({
+      title: "Footer link added",
+      description: `Added "${data.newLinkText}" to the footer.`,
+    });
+  };
+
+  // Handle removing a footer link
   const handleRemoveFooterLink = (columnId: string, linkId: string) => {
-    const updatedColumns = currentFooterColumns.map(column => 
+    setFooterColumns(footerColumns.map(column => 
       column.id === columnId 
         ? { ...column, links: column.links.filter(link => link.id !== linkId) } 
         : column
-    );
-    
-    setCurrentFooterColumns(updatedColumns);
+    ));
   };
 
-  // Handle saving footer columns
-  const handleSaveFooterColumns = () => {
-    updateFooterColumns(currentFooterColumns);
+  // Handle saving footer
+  const handleSaveFooter = () => {
     toast({
       title: "Footer updated",
-      description: "Your footer information has been successfully updated.",
+      description: "Your footer has been successfully updated.",
     });
   };
 
   return (
     <div className="space-y-8">
-      {/* Navigation Links */}
+      {/* Navigation Menu Editor */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MenuIcon className="h-5 w-5" />
-            Navigation Menu
-          </CardTitle>
+          <CardTitle>Navigation Menu</CardTitle>
           <CardDescription>
-            Configure the navigation links that appear in the header
+            Customize the main navigation menu of your store
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Current Navigation Links</h3>
-            <div className="border rounded-md">
-              {currentLinks.length === 0 ? (
-                <div className="p-4 text-center text-muted-foreground">
-                  No navigation links added yet.
-                </div>
-              ) : (
-                <div className="divide-y">
-                  {currentLinks.map((link) => (
-                    <div 
-                      key={link.id} 
-                      className="p-3 flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Grip className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{link.text}</p>
-                          <p className="text-sm text-muted-foreground">{link.url}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-2">
-                          <Switch 
-                            checked={link.isActive}
-                            onCheckedChange={(checked) => handleToggleNavLinkActive(link.id!, checked)}
-                          />
-                          <span className="text-sm">
-                            {link.isActive ? 'Active' : 'Hidden'}
-                          </span>
-                        </div>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          onClick={() => handleRemoveNavLink(link.id!)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+            <div className="space-y-2">
+              {navLinks.map(link => (
+                <div key={link.id} className="flex items-center justify-between p-3 border rounded-md bg-background">
+                  <div className="flex items-center gap-3">
+                    <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
+                    <div>
+                      <p className="font-medium">{link.text}</p>
+                      <p className="text-sm text-muted-foreground">{link.url}</p>
                     </div>
-                  ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch 
+                      checked={link.isActive}
+                      onCheckedChange={(checked) => handleToggleNavLinkActive(link.id, checked)}
+                    />
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleRemoveNavLink(link.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
           </div>
 
@@ -252,133 +287,164 @@ const AppEditorNavFooter = () => {
 
           <div>
             <h3 className="text-lg font-medium mb-4">Add New Navigation Link</h3>
-            <form onSubmit={navForm.handleSubmit(handleAddNavLink)} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <FormLabel htmlFor="newLinkText">Link Text</FormLabel>
-                <Input 
-                  id="newLinkText"
-                  placeholder="e.g. About Us"
-                  {...navForm.register('newLinkText')}
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <FormLabel htmlFor="newLinkUrl">URL</FormLabel>
-                <div className="flex gap-2">
-                  <Input 
-                    id="newLinkUrl"
-                    placeholder="e.g. /about"
-                    {...navForm.register('newLinkUrl')}
-                    className="flex-1"
+            <Form {...navForm}>
+              <form onSubmit={navForm.handleSubmit(handleAddNavLink)} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={navForm.control}
+                    name="newLinkText"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Link Text</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. Products" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                  <Button type="submit">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Link
-                  </Button>
+                  <FormField
+                    control={navForm.control}
+                    name="newLinkUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>URL</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. /products" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-              </div>
-            </form>
+                <Button type="submit">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Navigation Link
+                </Button>
+              </form>
+            </Form>
           </div>
-
-          <Button 
-            onClick={handleSaveNavLinks}
-            className="w-full mt-4"
-          >
-            Save Navigation Menu
-          </Button>
+          
+          <div className="pt-4">
+            <Button onClick={handleSaveNavLinks}>Save Navigation Menu</Button>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Footer Columns */}
+      {/* Footer Editor */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <LayoutList className="h-5 w-5" />
-            Footer Columns
-          </CardTitle>
+          <CardTitle>Footer</CardTitle>
           <CardDescription>
-            Configure the columns and links that appear in the footer
+            Customize the footer sections and links
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-6">
+          <div className="space-y-4">
             <h3 className="text-lg font-medium">Footer Columns</h3>
-            
-            {currentFooterColumns.map((column) => (
-              <div key={column.id} className="border rounded-md p-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium">{column.title}</h4>
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    onClick={() => handleRemoveFooterColumn(column.id!)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                
-                <div className="pl-4 border-l space-y-2">
-                  {column.links.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No links in this column.</p>
-                  ) : (
-                    column.links.map((link) => (
-                      <div key={link.id} className="flex items-center justify-between">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {footerColumns.map(column => (
+                <div key={column.id} className="border rounded-md p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium">{column.title}</h4>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleRemoveFooterColumn(column.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                  <div className="space-y-2 mb-4">
+                    {column.links.map(link => (
+                      <div key={link.id} className="flex items-center justify-between py-1 px-2 border-b">
                         <div>
                           <p className="text-sm">{link.text}</p>
                           <p className="text-xs text-muted-foreground">{link.url}</p>
                         </div>
                         <Button 
                           variant="ghost" 
-                          size="icon" 
-                          onClick={() => handleRemoveFooterLink(column.id!, link.id!)}
+                          size="sm"
+                          onClick={() => handleRemoveFooterLink(column.id, link.id)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3 w-3 text-destructive" />
                         </Button>
                       </div>
-                    ))
-                  )}
-                </div>
-                
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  const formData = new FormData(e.currentTarget);
-                  handleAddFooterLink({
-                    columnId: column.id!,
-                    newLinkText: formData.get('linkText') as string,
-                    newLinkUrl: formData.get('linkUrl') as string
-                  });
-                  e.currentTarget.reset();
-                }} className="grid grid-cols-3 gap-2 pt-2 border-t">
-                  <Input name="linkText" placeholder="Link text" size={10} className="col-span-1" />
-                  <div className="col-span-2 flex gap-2">
-                    <Input name="linkUrl" placeholder="URL (e.g. /about)" className="flex-1" />
-                    <Button type="submit" size="sm">
-                      <Plus className="h-3 w-3 mr-1" />
-                      Add
-                    </Button>
+                    ))}
                   </div>
-                </form>
+                  <Form {...footerLinkForm}>
+                    <form 
+                      onSubmit={footerLinkForm.handleSubmit(handleAddFooterLink)}
+                      className="space-y-2"
+                    >
+                      <input type="hidden" {...footerLinkForm.register("columnId")} value={column.id} />
+                      <FormField
+                        control={footerLinkForm.control}
+                        name="newLinkText"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input placeholder="Link text" size={10} {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={footerLinkForm.control}
+                        name="newLinkUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input placeholder="URL" size={10} {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit" size="sm" variant="outline" className="w-full">
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Link
+                      </Button>
+                    </form>
+                  </Form>
+                </div>
+              ))}
+              
+              <div className="border rounded-md p-4 border-dashed flex flex-col items-center justify-center">
+                <Form {...footerColumnForm}>
+                  <form 
+                    onSubmit={footerColumnForm.handleSubmit(handleAddFooterColumn)}
+                    className="space-y-3 w-full"
+                  >
+                    <FormField
+                      control={footerColumnForm.control}
+                      name="newColumnTitle"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Column Title</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. Support" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="w-full">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Column
+                    </Button>
+                  </form>
+                </Form>
               </div>
-            ))}
-            
-            <form onSubmit={footerForm.handleSubmit(handleAddFooterColumn)} className="flex gap-2">
-              <Input 
-                placeholder="New column title"
-                {...footerForm.register('newColumnTitle')}
-                className="flex-1"
-              />
-              <Button type="submit">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Column
-              </Button>
-            </form>
+            </div>
           </div>
 
-          <Button 
-            onClick={handleSaveFooterColumns}
-            className="w-full mt-4"
-          >
-            Save Footer
-          </Button>
+          <Separator />
+          
+          <div className="pt-4">
+            <Button onClick={handleSaveFooter}>Save Footer</Button>
+          </div>
         </CardContent>
       </Card>
     </div>
