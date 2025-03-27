@@ -58,7 +58,7 @@ const AppEditorMarketing = () => {
     buttonText: '',
     buttonLink: '',
     buttonColor: '#0284c7',
-    position: 'top',
+    position: 'top' as 'top' | 'bottom', // Explicitly type as union type
     startDate: '',
     endDate: '',
     isActive: true
@@ -74,7 +74,12 @@ const AppEditorMarketing = () => {
   };
   
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    // Validate position value before setting it
+    if (name === 'position' && (value === 'top' || value === 'bottom')) {
+      setFormData(prev => ({ ...prev, [name]: value as 'top' | 'bottom' }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
   
   const resetForm = () => {
@@ -87,7 +92,7 @@ const AppEditorMarketing = () => {
       buttonText: '',
       buttonLink: '',
       buttonColor: '#0284c7',
-      position: 'top',
+      position: 'top' as 'top' | 'bottom',
       startDate: '',
       endDate: '',
       isActive: true
@@ -230,7 +235,7 @@ const AppEditorMarketing = () => {
                       ) : isFuture ? (
                         <Badge variant="outline">Scheduled</Badge>
                       ) : banner.isActive ? (
-                        <Badge variant="success" className="bg-green-100 text-green-800 hover:bg-green-200">Active</Badge>
+                        <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-200">Active</Badge>
                       ) : (
                         <Badge variant="secondary">Inactive</Badge>
                       )}
