@@ -11,7 +11,8 @@ import {
   ShoppingCart, 
   Heart, 
   Star, 
-  TrendingUp 
+  TrendingUp,
+  Package
 } from 'lucide-react';
 
 // Mock featured products
@@ -98,13 +99,61 @@ const Index = () => {
             </div>
           </div>
         </div>
+        <div className="absolute inset-0 bg-[url('https://placehold.co/1200x500')] opacity-10 mix-blend-overlay"></div>
+      </section>
+      
+      {/* Features Section */}
+      <section className="py-8 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="flex items-center p-4 rounded-lg shadow-sm bg-gray-50 hover:shadow-md transition-shadow">
+              <div className="mr-4 p-3 rounded-full bg-primary/10 text-primary">
+                <Package className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-medium">Free Shipping</h3>
+                <p className="text-sm text-muted-foreground">On orders over N$599</p>
+              </div>
+            </div>
+            <div className="flex items-center p-4 rounded-lg shadow-sm bg-gray-50 hover:shadow-md transition-shadow">
+              <div className="mr-4 p-3 rounded-full bg-primary/10 text-primary">
+                <Package className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-medium">Quality Guarantee</h3>
+                <p className="text-sm text-muted-foreground">100% authentic products</p>
+              </div>
+            </div>
+            <div className="flex items-center p-4 rounded-lg shadow-sm bg-gray-50 hover:shadow-md transition-shadow">
+              <div className="mr-4 p-3 rounded-full bg-primary/10 text-primary">
+                <Package className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-medium">24/7 Support</h3>
+                <p className="text-sm text-muted-foreground">Customer service available</p>
+              </div>
+            </div>
+            <div className="flex items-center p-4 rounded-lg shadow-sm bg-gray-50 hover:shadow-md transition-shadow">
+              <div className="mr-4 p-3 rounded-full bg-primary/10 text-primary">
+                <Package className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-medium">Secure Payment</h3>
+                <p className="text-sm text-muted-foreground">100% secure checkout</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
       
       {/* Categories Section */}
-      <section className="py-12 bg-gray-50 dark:bg-gray-900">
+      <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold">Browse Categories</h2>
+            <div>
+              <h2 className="text-2xl font-bold">Browse Categories</h2>
+              <p className="text-muted-foreground">Find products by category</p>
+            </div>
             <Link to="/categories" className="flex items-center text-primary hover:text-primary/80">
               View All
               <ChevronRight className="h-4 w-4 ml-1" />
@@ -114,13 +163,15 @@ const Index = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {categories.map((category) => (
               <Link key={category.id} to={`/category/${category.id}`}>
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden transition-transform hover:scale-105 hover:border-primary hover:shadow-md">
-                  <img 
-                    src={category.image} 
-                    alt={category.name} 
-                    className="w-full h-40 object-cover"
-                  />
-                  <div className="p-3 text-center">
+                <div className="bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md hover:translate-y-[-4px] hover:border-primary/50 border border-transparent">
+                  <div className="h-40 overflow-hidden">
+                    <img 
+                      src={category.image} 
+                      alt={category.name} 
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="p-4 text-center">
                     <h3 className="font-medium">{category.name}</h3>
                     <p className="text-sm text-muted-foreground">{category.productCount} products</p>
                   </div>
@@ -135,7 +186,10 @@ const Index = () => {
       <section className="py-12">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold">Featured Products</h2>
+            <div>
+              <h2 className="text-2xl font-bold">Featured Products</h2>
+              <p className="text-muted-foreground">Handpicked by our team</p>
+            </div>
             <Link to="/products" className="flex items-center text-primary hover:text-primary/80">
               View All
               <ChevronRight className="h-4 w-4 ml-1" />
@@ -144,12 +198,12 @@ const Index = () => {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredProducts.map((product) => (
-              <Card key={product.id} className="overflow-hidden group hover:border-primary transition-colors">
-                <div className="relative">
+              <Card key={product.id} className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:translate-y-[-4px] border-transparent hover:border-primary/30">
+                <div className="relative overflow-hidden">
                   <img 
                     src={product.image} 
                     alt={product.name} 
-                    className="w-full h-64 object-cover"
+                    className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   {product.discount > 0 && (
                     <Badge className="absolute top-2 left-2 bg-red-500">
@@ -157,17 +211,17 @@ const Index = () => {
                     </Badge>
                   )}
                   <div className="absolute top-2 right-2 flex flex-col gap-2">
-                    <Button size="icon" variant="secondary" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button size="icon" variant="secondary" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white hover:bg-primary hover:text-white">
                       <Heart className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="secondary" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button size="icon" variant="secondary" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white hover:bg-primary hover:text-white">
                       <ShoppingCart className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
                 <CardContent className="p-4">
-                  <h3 className="font-medium line-clamp-2 mb-2">
-                    <Link to={`/product/${product.id}`} className="hover:text-primary">
+                  <h3 className="font-medium line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+                    <Link to={`/product/${product.id}`}>
                       {product.name}
                     </Link>
                   </h3>
@@ -186,6 +240,9 @@ const Index = () => {
                       </span>
                     )}
                   </div>
+                  <Button variant="ghost" className="w-full mt-3 hover:bg-primary hover:text-white transition-colors">
+                    Add to Cart
+                  </Button>
                 </CardContent>
               </Card>
             ))}
@@ -194,10 +251,13 @@ const Index = () => {
       </section>
       
       {/* Top Vendors Section */}
-      <section className="py-12 bg-gray-50 dark:bg-gray-900">
+      <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold">Top Vendors</h2>
+            <div>
+              <h2 className="text-2xl font-bold">Top Vendors</h2>
+              <p className="text-muted-foreground">Trusted sellers on our platform</p>
+            </div>
             <Link to="/vendors" className="flex items-center text-primary hover:text-primary/80">
               View All
               <ChevronRight className="h-4 w-4 ml-1" />
@@ -207,16 +267,16 @@ const Index = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {topVendors.map((vendor) => (
               <Link key={vendor.id} to={`/vendor/${vendor.id}`}>
-                <Card className="hover:shadow-md transition-shadow hover:border-primary">
+                <Card className="hover:shadow-md transition-all duration-300 hover:translate-y-[-4px] hover:border-primary/30 border-transparent">
                   <CardContent className="p-6 flex flex-col items-center text-center">
                     <img 
                       src={vendor.logo} 
                       alt={vendor.name} 
-                      className="w-24 h-24 rounded-full mb-4"
+                      className="w-24 h-24 rounded-full mb-4 border-4 border-white shadow-md"
                     />
                     <h3 className="font-medium mb-2">{vendor.name}</h3>
                     <p className="text-sm text-muted-foreground mb-4">{vendor.productCount} products</p>
-                    <Button variant="outline" size="sm" className="hover:bg-primary hover:text-white">
+                    <Button variant="outline" size="sm" className="hover:bg-primary hover:text-white transition-colors">
                       Visit Store
                     </Button>
                   </CardContent>
@@ -233,7 +293,10 @@ const Index = () => {
           <div className="flex justify-between items-center mb-8">
             <div className="flex items-center">
               <TrendingUp className="h-6 w-6 mr-2 text-primary" />
-              <h2 className="text-2xl font-bold">Hot Deals</h2>
+              <div>
+                <h2 className="text-2xl font-bold">Hot Deals</h2>
+                <p className="text-muted-foreground">Limited time offers</p>
+              </div>
             </div>
             <Link to="/deals" className="flex items-center text-primary hover:text-primary/80">
               View All Deals
@@ -241,9 +304,12 @@ const Index = () => {
             </Link>
           </div>
           
-          {/* Sample deal card - you could reuse product cards here */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 flex flex-col md:flex-row gap-6">
-            <div className="md:w-1/2 flex justify-center">
+          {/* Sample deal card */}
+          <div className="bg-white rounded-lg shadow-md p-6 flex flex-col md:flex-row gap-6 overflow-hidden">
+            <div className="md:w-1/2 flex justify-center relative">
+              <div className="absolute top-0 left-0 bg-red-500 text-white px-4 py-1 rounded-br-lg font-medium">
+                SALE
+              </div>
               <img 
                 src="https://placehold.co/500x300" 
                 alt="Special Deal" 
@@ -256,24 +322,42 @@ const Index = () => {
               <p className="text-muted-foreground mb-4">Experience crystal clear sound with our top-rated noise cancelling headphones. Limited stock available.</p>
               
               <div className="flex items-center mb-6">
-                <span className="text-3xl font-bold">N$ 599.99</span>
+                <span className="text-3xl font-bold text-primary">N$ 599.99</span>
                 <span className="ml-2 text-lg text-muted-foreground line-through">N$ 1,199.99</span>
               </div>
               
               <div className="space-y-4">
-                <div className="flex flex-wrap gap-4">
-                  <Button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <Button className="w-full">
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     Add to Cart
                   </Button>
-                  <Button variant="outline" className="hover:border-primary hover:text-primary">
+                  <Button variant="outline" className="w-full hover:border-primary hover:text-primary">
                     View Details
                   </Button>
                 </div>
                 
-                <p className="text-sm text-muted-foreground">
-                  Hurry! Deal ends in: <span className="font-medium text-primary">2 days 18:45:30</span>
-                </p>
+                <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg">
+                  <span className="text-sm font-medium">Sale ends in:</span>
+                  <div className="flex gap-2">
+                    <div className="bg-white px-2 py-1 rounded text-center">
+                      <span className="block text-primary font-bold">02</span>
+                      <span className="text-xs text-muted-foreground">Days</span>
+                    </div>
+                    <div className="bg-white px-2 py-1 rounded text-center">
+                      <span className="block text-primary font-bold">18</span>
+                      <span className="text-xs text-muted-foreground">Hrs</span>
+                    </div>
+                    <div className="bg-white px-2 py-1 rounded text-center">
+                      <span className="block text-primary font-bold">45</span>
+                      <span className="text-xs text-muted-foreground">Min</span>
+                    </div>
+                    <div className="bg-white px-2 py-1 rounded text-center">
+                      <span className="block text-primary font-bold">30</span>
+                      <span className="text-xs text-muted-foreground">Sec</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -292,7 +376,7 @@ const Index = () => {
                 placeholder="Your email address"
                 className="flex-1 py-3 px-4 rounded-l-md text-black focus:outline-none focus:ring-2 focus:ring-white"
               />
-              <Button className="rounded-l-none sm:rounded-l-none rounded-r-md mt-2 sm:mt-0">Subscribe</Button>
+              <Button className="rounded-l-none sm:rounded-l-none rounded-r-md mt-2 sm:mt-0 bg-white text-primary hover:bg-gray-100">Subscribe</Button>
             </div>
           </div>
         </div>

@@ -46,6 +46,7 @@ import AdminCategories from "./pages/admin/Categories";
 // Vendor routes
 import VendorDashboard from "./pages/vendor/Dashboard";
 import VendorProducts from "./pages/vendor/Products";
+import VendorCreateProduct from "./pages/vendor/CreateProduct";
 import VendorOrders from "./pages/vendor/Orders";
 import VendorEarnings from "./pages/vendor/Earnings";
 import VendorSettings from "./pages/vendor/Settings";
@@ -125,6 +126,8 @@ const App = () => {
                   {/* Vendor Routes */}
                   <Route path="/vendor/dashboard" element={<VendorDashboard />} />
                   <Route path="/vendor/products" element={<VendorProducts />} />
+                  <Route path="/vendor/products/create" element={<VendorCreateProduct />} />
+                  <Route path="/vendor/products/edit/:id" element={<VendorCreateProduct />} />
                   <Route path="/vendor/orders" element={<VendorOrders />} />
                   <Route path="/vendor/earnings" element={<VendorEarnings />} />
                   <Route path="/vendor/settings" element={<VendorSettings />} />

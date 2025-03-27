@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { 
   Package, Search, Filter, Trash2, Edit, Plus, 
   MoreHorizontal, ArrowUp, ArrowDown, 
   DollarSign, Sparkles, Star, StarOff
 } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import VendorLayout from '@/components/layout/VendorLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,7 +47,6 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { useLocation } from 'react-router-dom';
 
 // Mock product data
 const mockProducts = Array.from({ length: 15 }).map((_, i) => ({
@@ -66,6 +65,7 @@ const mockProducts = Array.from({ length: 15 }).map((_, i) => ({
 
 const VendorProducts = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
   const isAdminView = searchParams.get('admin_view') === 'true';
   
@@ -78,7 +78,6 @@ const VendorProducts = () => {
   const [productToDelete, setProductToDelete] = useState<number | null>(null);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   
-  // Filter products based on search term and filters
   const filteredProducts = mockProducts.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           product.category.toLowerCase().includes(searchTerm.toLowerCase());
@@ -89,7 +88,6 @@ const VendorProducts = () => {
     return matchesSearch && matchesStatus && matchesCategory;
   });
   
-  // Sort products
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
       case 'newest':
@@ -107,7 +105,6 @@ const VendorProducts = () => {
     }
   });
   
-  // Get unique categories
   const categories = [...new Set(mockProducts.map(p => p.category))];
   
   const handleDeleteClick = (id: number) => {
@@ -116,7 +113,6 @@ const VendorProducts = () => {
   };
   
   const confirmDelete = () => {
-    // In a real app, you would delete from your API here
     console.log(`Deleting product with ID: ${productToDelete}`);
     setIsDeleteDialogOpen(false);
     setProductToDelete(null);
@@ -133,12 +129,10 @@ const VendorProducts = () => {
   };
   
   const handleAddNewClick = () => {
-    setEditingProduct(null);
-    setIsProductFormOpen(true);
+    navigate('/vendor/products/create');
   };
   
   const handleToggleFeatured = (product: any) => {
-    // In a real app, you would update the product in your API
     console.log(`Toggling featured status for product ID: ${product.id}`);
     
     toast({
@@ -343,7 +337,6 @@ const VendorProducts = () => {
           </TabsContent>
           
           <TabsContent value="active">
-            {/* Similar content as 'all' but filtered for active products */}
             <Card>
               <CardContent className="p-6">
                 <p className="text-center text-muted-foreground">
@@ -354,7 +347,6 @@ const VendorProducts = () => {
           </TabsContent>
           
           <TabsContent value="inactive">
-            {/* Similar content as 'all' but filtered for inactive products */}
             <Card>
               <CardContent className="p-6">
                 <p className="text-center text-muted-foreground">
@@ -366,7 +358,6 @@ const VendorProducts = () => {
         </Tabs>
       </div>
       
-      {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -386,7 +377,6 @@ const VendorProducts = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Product Form Dialog */}
       <Dialog open={isProductFormOpen} onOpenChange={setIsProductFormOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>

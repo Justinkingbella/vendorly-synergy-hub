@@ -19,6 +19,32 @@ body {
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Set up theme colors */
+:root {
+  --primary: #10b981;
+  --primary-hover: #059669;
+  --primary-foreground: #ffffff;
+}
+
+/* Selection styling */
+::selection {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* Global focus styles */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Enhanced button hover effects */
+button:not(:disabled):hover {
+  transform: translateY(-1px);
+  transition: transform 0.2s;
 }
 
 /* Placeholder for backward compatibility with existing code */
@@ -29,10 +55,10 @@ body {
   transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em var(--primary));
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop-shadow(0 0 2em var(--primary));
 }
 
 @keyframes logo-spin {
