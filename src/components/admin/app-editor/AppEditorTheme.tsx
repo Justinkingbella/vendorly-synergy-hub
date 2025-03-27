@@ -46,7 +46,7 @@ const AppEditorTheme = () => {
   };
 
   return (
-    <Card>
+    <Card className="hover:border-primary transition-colors">
       <CardHeader>
         <CardTitle>Theme Settings</CardTitle>
         <CardDescription>
@@ -100,6 +100,7 @@ const AppEditorTheme = () => {
                 id="primaryColor" 
                 value={themeSettings.primaryColor}
                 onChange={(e) => handleColorChange('primaryColor', e.target.value)}
+                className="focus:border-primary focus:ring-2 focus:ring-primary focus:ring-offset-2"
               />
             </div>
           </div>
@@ -116,6 +117,7 @@ const AppEditorTheme = () => {
                 id="secondaryColor" 
                 value={themeSettings.secondaryColor}
                 onChange={(e) => handleColorChange('secondaryColor', e.target.value)}
+                className="focus:border-primary focus:ring-2 focus:ring-primary focus:ring-offset-2"
               />
             </div>
           </div>
@@ -132,6 +134,7 @@ const AppEditorTheme = () => {
                 id="accentColor" 
                 value={themeSettings.accentColor}
                 onChange={(e) => handleColorChange('accentColor', e.target.value)}
+                className="focus:border-primary focus:ring-2 focus:ring-primary focus:ring-offset-2"
               />
             </div>
           </div>
@@ -143,15 +146,15 @@ const AppEditorTheme = () => {
             value={themeSettings.fontFamily}
             onValueChange={(value) => updateThemeSettings({ fontFamily: value })}
           >
-            <SelectTrigger id="fontFamily">
+            <SelectTrigger id="fontFamily" className="focus:ring-2 focus:ring-primary focus:ring-offset-2">
               <SelectValue placeholder="Select a font family" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Inter, sans-serif">Inter</SelectItem>
-              <SelectItem value="'Roboto', sans-serif">Roboto</SelectItem>
-              <SelectItem value="'Open Sans', sans-serif">Open Sans</SelectItem>
-              <SelectItem value="'Lato', sans-serif">Lato</SelectItem>
-              <SelectItem value="'Poppins', sans-serif">Poppins</SelectItem>
+            <SelectContent className="focus:bg-secondary">
+              <SelectItem value="Inter, sans-serif" className="focus:bg-secondary focus:text-secondary-foreground">Inter</SelectItem>
+              <SelectItem value="'Roboto', sans-serif" className="focus:bg-secondary focus:text-secondary-foreground">Roboto</SelectItem>
+              <SelectItem value="'Open Sans', sans-serif" className="focus:bg-secondary focus:text-secondary-foreground">Open Sans</SelectItem>
+              <SelectItem value="'Lato', sans-serif" className="focus:bg-secondary focus:text-secondary-foreground">Lato</SelectItem>
+              <SelectItem value="'Poppins', sans-serif" className="focus:bg-secondary focus:text-secondary-foreground">Poppins</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -162,15 +165,15 @@ const AppEditorTheme = () => {
             value={themeSettings.borderRadius}
             onValueChange={(value) => updateThemeSettings({ borderRadius: value })}
           >
-            <SelectTrigger id="borderRadius">
+            <SelectTrigger id="borderRadius" className="focus:ring-2 focus:ring-primary focus:ring-offset-2">
               <SelectValue placeholder="Select border radius" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="0">None</SelectItem>
-              <SelectItem value="0.25rem">Small (0.25rem)</SelectItem>
-              <SelectItem value="0.5rem">Medium (0.5rem)</SelectItem>
-              <SelectItem value="0.75rem">Large (0.75rem)</SelectItem>
-              <SelectItem value="1rem">Extra Large (1rem)</SelectItem>
+              <SelectItem value="0" className="focus:bg-secondary focus:text-secondary-foreground">None</SelectItem>
+              <SelectItem value="0.25rem" className="focus:bg-secondary focus:text-secondary-foreground">Small (0.25rem)</SelectItem>
+              <SelectItem value="0.5rem" className="focus:bg-secondary focus:text-secondary-foreground">Medium (0.5rem)</SelectItem>
+              <SelectItem value="0.75rem" className="focus:bg-secondary focus:text-secondary-foreground">Large (0.75rem)</SelectItem>
+              <SelectItem value="1rem" className="focus:bg-secondary focus:text-secondary-foreground">Extra Large (1rem)</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -183,6 +186,7 @@ const AppEditorTheme = () => {
             value={themeSettings.customCss}
             onChange={(e) => updateThemeSettings({ customCss: e.target.value })}
             rows={5}
+            className="focus:border-primary focus:ring-2 focus:ring-primary focus:ring-offset-2"
           />
           <p className="text-sm text-muted-foreground">
             Advanced: Add custom CSS rules to further customize your store's appearance.

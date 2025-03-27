@@ -126,7 +126,7 @@ const VendorLayout = ({ children }: { children: React.ReactNode }) => {
                     className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                       isActive 
                         ? "bg-primary text-primary-foreground" 
-                        : "hover:bg-muted"
+                        : "hover:bg-secondary hover:text-secondary-foreground"
                     }`}
                   >
                     <link.icon className="h-4 w-4" />
@@ -161,7 +161,7 @@ const VendorLayout = ({ children }: { children: React.ReactNode }) => {
                   className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                     isActive 
                       ? "bg-primary text-primary-foreground" 
-                      : "hover:bg-muted"
+                      : "hover:bg-secondary hover:text-secondary-foreground"
                   }`}
                 >
                   <link.icon className="h-4 w-4" />
@@ -190,13 +190,13 @@ const VendorLayout = ({ children }: { children: React.ReactNode }) => {
                       type="search"
                       name="searchQuery"
                       placeholder="Search orders, products..."
-                      className="w-full rounded-md border border-input bg-background pl-8 py-2 text-sm ring-offset-background"
+                      className="w-full rounded-md border border-input bg-background pl-8 py-2 text-sm ring-offset-background focus:border-primary focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     />
                   </div>
                 </form>
               </div>
               <div className="flex items-center gap-4">
-                <Button variant="outline" size="icon" className="relative h-8 w-8">
+                <Button variant="outline" size="icon" className="relative h-8 w-8 hover:bg-secondary hover:text-secondary-foreground focus:ring-2 focus:ring-primary focus:ring-offset-2">
                   <Bell className="h-4 w-4" />
                   <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
                     2
@@ -204,7 +204,7 @@ const VendorLayout = ({ children }: { children: React.ReactNode }) => {
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 flex items-center gap-2">
+                    <Button variant="ghost" className="relative h-8 flex items-center gap-2 hover:bg-secondary hover:text-secondary-foreground focus:ring-2 focus:ring-primary focus:ring-offset-2">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src="/avatar.png" alt="Vendor" />
                         <AvatarFallback>VE</AvatarFallback>
@@ -215,14 +215,14 @@ const VendorLayout = ({ children }: { children: React.ReactNode }) => {
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate(getNavPath('/vendor/settings'))}>
+                    <DropdownMenuItem onClick={() => navigate(getNavPath('/vendor/settings'))} className="cursor-pointer focus:bg-secondary focus:text-secondary-foreground">
                       <Settings className="mr-2 h-4 w-4" />
                       Settings
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleLogout}>
+                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer focus:bg-secondary focus:text-secondary-foreground">
                       <LogOut className="mr-2 h-4 w-4" />
                       {isAdminView ? 'Return to Admin' : 'Logout'}
                     </DropdownMenuItem>
