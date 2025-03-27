@@ -21,10 +21,12 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
 const VendorLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   
   // Check if we're in admin view mode
@@ -46,8 +48,16 @@ const VendorLayout = ({ children }: { children: React.ReactNode }) => {
     // If admin is viewing vendor account, return to admin panel
     if (isAdminView) {
       navigate('/admin/vendors');
+      toast({
+        title: "Admin View Exited",
+        description: "You have returned to the admin panel.",
+      });
     } else {
       // Regular vendor logout
+      toast({
+        title: "Logged Out",
+        description: "You have been logged out successfully.",
+      });
       navigate('/auth');
     }
   };
@@ -58,6 +68,20 @@ const VendorLayout = ({ children }: { children: React.ReactNode }) => {
       return `${path}?admin_view=true&vendor_id=${vendorId}`;
     }
     return path;
+  };
+
+  // Handle search functionality
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const query = formData.get('searchQuery') as string;
+    
+    if (query?.trim()) {
+      toast({
+        title: "Search Results",
+        description: `Showing results for: ${query}`,
+      });
+    }
   };
 
   return (
@@ -159,12 +183,17 @@ const VendorLayout = ({ children }: { children: React.ReactNode }) => {
             </Button>
             <div className="w-full flex justify-between items-center">
               <div className="relative flex-1 md:max-w-sm">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <input
-                  type="search"
-                  placeholder="Search orders, products..."
-                  className="w-full rounded-md border border-input bg-background pl-8 py-2 text-sm ring-offset-background"
-                />
+                <form onSubmit={handleSearch}>
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <input
+                      type="search"
+                      name="searchQuery"
+                      placeholder="Search orders, products..."
+                      className="w-full rounded-md border border-input bg-background pl-8 py-2 text-sm ring-offset-background"
+                    />
+                  </div>
+                </form>
               </div>
               <div className="flex items-center gap-4">
                 <Button variant="outline" size="icon" className="relative h-8 w-8">

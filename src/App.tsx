@@ -58,10 +58,18 @@ import CustomerOrders from "./pages/customer/Orders";
 import CustomerWishlist from "./pages/customer/Wishlist";
 import CustomerSettings from "./pages/customer/Settings";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => {
-  // This helps determine if we're in development or production environment
+  // Determine the basename for the router based on the environment
+  // This ensures proper routing in both development and production
   const basename = import.meta.env.BASE_URL || "/";
 
   return (

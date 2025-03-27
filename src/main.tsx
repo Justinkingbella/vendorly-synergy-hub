@@ -9,8 +9,14 @@ const handleError = (error: Error) => {
   console.error('Application error:', error);
 };
 
+// Global error handler
 window.addEventListener('error', (event) => {
   console.error('Global error:', event.error);
+});
+
+// Process unhandled promise rejections
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason);
 });
 
 try {
