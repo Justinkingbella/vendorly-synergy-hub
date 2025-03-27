@@ -86,9 +86,11 @@ const Index = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Discover the Best Products in Namibia</h1>
             <p className="text-lg mb-6">Shop quality items from verified vendors throughout the country.</p>
             <div className="flex gap-4">
-              <Button size="lg" variant="default" className="bg-white text-primary hover:bg-gray-100">
-                Shop Now
-                <ArrowRight className="ml-2 h-5 w-5" />
+              <Button size="lg" asChild className="bg-white text-primary hover:bg-gray-100">
+                <Link to="/products">
+                  Shop Now
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
               </Button>
               <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/20">
                 Learn More
@@ -96,16 +98,14 @@ const Index = () => {
             </div>
           </div>
         </div>
-        
-        {/* Hero image could be positioned absolutely here */}
       </section>
       
       {/* Categories Section */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-12 bg-gray-50 dark:bg-gray-900">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold">Browse Categories</h2>
-            <Link to="/categories" className="flex items-center text-primary">
+            <Link to="/categories" className="flex items-center text-primary hover:text-primary/80">
               View All
               <ChevronRight className="h-4 w-4 ml-1" />
             </Link>
@@ -114,7 +114,7 @@ const Index = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {categories.map((category) => (
               <Link key={category.id} to={`/category/${category.id}`}>
-                <div className="bg-white rounded-lg shadow-sm overflow-hidden transition-transform hover:scale-105">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden transition-transform hover:scale-105 hover:border-primary hover:shadow-md">
                   <img 
                     src={category.image} 
                     alt={category.name} 
@@ -136,7 +136,7 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold">Featured Products</h2>
-            <Link to="/products" className="flex items-center text-primary">
+            <Link to="/products" className="flex items-center text-primary hover:text-primary/80">
               View All
               <ChevronRight className="h-4 w-4 ml-1" />
             </Link>
@@ -144,7 +144,7 @@ const Index = () => {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredProducts.map((product) => (
-              <Card key={product.id} className="overflow-hidden group">
+              <Card key={product.id} className="overflow-hidden group hover:border-primary transition-colors">
                 <div className="relative">
                   <img 
                     src={product.image} 
@@ -194,11 +194,11 @@ const Index = () => {
       </section>
       
       {/* Top Vendors Section */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-12 bg-gray-50 dark:bg-gray-900">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold">Top Vendors</h2>
-            <Link to="/vendors" className="flex items-center text-primary">
+            <Link to="/vendors" className="flex items-center text-primary hover:text-primary/80">
               View All
               <ChevronRight className="h-4 w-4 ml-1" />
             </Link>
@@ -207,7 +207,7 @@ const Index = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {topVendors.map((vendor) => (
               <Link key={vendor.id} to={`/vendor/${vendor.id}`}>
-                <Card className="hover:shadow-md transition-shadow">
+                <Card className="hover:shadow-md transition-shadow hover:border-primary">
                   <CardContent className="p-6 flex flex-col items-center text-center">
                     <img 
                       src={vendor.logo} 
@@ -216,7 +216,7 @@ const Index = () => {
                     />
                     <h3 className="font-medium mb-2">{vendor.name}</h3>
                     <p className="text-sm text-muted-foreground mb-4">{vendor.productCount} products</p>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="hover:bg-primary hover:text-white">
                       Visit Store
                     </Button>
                   </CardContent>
@@ -232,17 +232,17 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <div className="flex items-center">
-              <TrendingUp className="h-6 w-6 mr-2" />
+              <TrendingUp className="h-6 w-6 mr-2 text-primary" />
               <h2 className="text-2xl font-bold">Hot Deals</h2>
             </div>
-            <Link to="/deals" className="flex items-center text-primary">
+            <Link to="/deals" className="flex items-center text-primary hover:text-primary/80">
               View All Deals
               <ChevronRight className="h-4 w-4 ml-1" />
             </Link>
           </div>
           
           {/* Sample deal card - you could reuse product cards here */}
-          <div className="bg-white rounded-lg shadow-sm p-6 flex flex-col md:flex-row gap-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 flex flex-col md:flex-row gap-6">
             <div className="md:w-1/2 flex justify-center">
               <img 
                 src="https://placehold.co/500x300" 
@@ -261,18 +261,18 @@ const Index = () => {
               </div>
               
               <div className="space-y-4">
-                <div className="flex gap-4">
+                <div className="flex flex-wrap gap-4">
                   <Button>
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     Add to Cart
                   </Button>
-                  <Button variant="outline">
+                  <Button variant="outline" className="hover:border-primary hover:text-primary">
                     View Details
                   </Button>
                 </div>
                 
                 <p className="text-sm text-muted-foreground">
-                  Hurry! Deal ends in: <span className="font-medium">2 days 18:45:30</span>
+                  Hurry! Deal ends in: <span className="font-medium text-primary">2 days 18:45:30</span>
                 </p>
               </div>
             </div>
@@ -286,13 +286,13 @@ const Index = () => {
           <div className="max-w-2xl mx-auto text-center text-white">
             <h2 className="text-3xl font-bold mb-4">Subscribe to Our Newsletter</h2>
             <p className="mb-6">Get updates on new products, special offers, and more.</p>
-            <div className="flex max-w-md mx-auto">
+            <div className="flex flex-col sm:flex-row max-w-md mx-auto">
               <input
                 type="email"
                 placeholder="Your email address"
-                className="flex-1 py-3 px-4 rounded-l-md text-black"
+                className="flex-1 py-3 px-4 rounded-l-md text-black focus:outline-none focus:ring-2 focus:ring-white"
               />
-              <Button className="rounded-l-none">Subscribe</Button>
+              <Button className="rounded-l-none sm:rounded-l-none rounded-r-md mt-2 sm:mt-0">Subscribe</Button>
             </div>
           </div>
         </div>
