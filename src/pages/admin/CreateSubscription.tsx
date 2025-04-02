@@ -1,3 +1,4 @@
+
 // Import the needed components and hooks
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -9,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Trash } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { subscriptionPlansTable } from '@/integrations/supabase/client';
+import { subscriptionPlansTable, type SubscriptionPlanRow, type SubscriptionPlanInsert } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -52,21 +53,24 @@ export default function CreateSubscription() {
             return;
           }
           
+          // Type assertion to handle the result correctly
+          const subscriptionData = data as unknown as SubscriptionPlanRow;
+          
           // Safely handle potentially null data
-          if (data) {
+          if (subscriptionData) {
             // Set subscription data with null checks
-            setName(data.name ? String(data.name) : '');
-            setPrice(data.price !== undefined ? Number(data.price) : 0);
-            setDescription(data.description ? String(data.description) : '');
-            setIsPopular(data.popular ? Boolean(data.popular) : false);
+            setName(subscriptionData.name || '');
+            setPrice(typeof subscriptionData.price === 'number' ? subscriptionData.price : 0);
+            setDescription(subscriptionData.description || '');
+            setIsPopular(Boolean(subscriptionData.popular));
             
             // Handle arrays from database with null checks
-            if (data.features && Array.isArray(data.features)) {
-              setFeatures(data.features.length > 0 ? data.features : ['']);
+            if (subscriptionData.features && Array.isArray(subscriptionData.features)) {
+              setFeatures(subscriptionData.features.length > 0 ? subscriptionData.features : ['']);
             }
             
-            if (data.not_included && Array.isArray(data.not_included)) {
-              setNotIncluded(data.not_included.length > 0 ? data.not_included : ['']);
+            if (subscriptionData.not_included && Array.isArray(subscriptionData.not_included)) {
+              setNotIncluded(subscriptionData.not_included.length > 0 ? subscriptionData.not_included : ['']);
             }
           }
         } catch (err) {
@@ -85,7 +89,7 @@ export default function CreateSubscription() {
     try {
       setIsSaving(true);
 
-      const subscriptionData = {
+      const subscriptionData: SubscriptionPlanInsert = {
         name,
         price,
         description,
@@ -294,26 +298,19 @@ export default function CreateSubscription() {
                     <Input
                       type="text"
                       value={feature}
-                      onChange={(e) => {
-                        const newFeatures = [...features];
-                        newFeatures[index] = e.target.value;
-                        setFeatures(newFeatures);
-                      }}
+                      onChange={(e) => updateFeature(index, e.target.value)}
                     />
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => {
-                        const newFeatures = [...features];
-                        newFeatures.splice(index, 1);
-                        setFeatures(newFeatures.length ? newFeatures : ['']);
-                      }}
+                      onClick={() => removeFeature(index)}
+                      disabled={features.length === 1}
                     >
                       <Trash className="h-4 w-4" />
                     </Button>
                   </div>
                 ))}
-                <Button variant="secondary" size="sm" onClick={() => setFeatures([...features, ''])}>
+                <Button variant="secondary" size="sm" onClick={addFeature}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Feature
                 </Button>
@@ -326,26 +323,19 @@ export default function CreateSubscription() {
                     <Input
                       type="text"
                       value={item}
-                      onChange={(e) => {
-                        const newNotIncluded = [...notIncluded];
-                        newNotIncluded[index] = e.target.value;
-                        setNotIncluded(newNotIncluded);
-                      }}
+                      onChange={(e) => updateNotIncluded(index, e.target.value)}
                     />
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => {
-                        const newNotIncluded = [...notIncluded];
-                        newNotIncluded.splice(index, 1);
-                        setNotIncluded(newNotIncluded.length ? newNotIncluded : ['']);
-                      }}
+                      onClick={() => removeNotIncluded(index)}
+                      disabled={notIncluded.length === 1}
                     >
                       <Trash className="h-4 w-4" />
                     </Button>
                   </div>
                 ))}
-                <Button variant="secondary" size="sm" onClick={() => setNotIncluded([...notIncluded, ''])}>
+                <Button variant="secondary" size="sm" onClick={addNotIncluded}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Item
                 </Button>
