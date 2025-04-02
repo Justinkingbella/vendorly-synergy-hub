@@ -1,6 +1,6 @@
 // Import the needed components and hooks
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,8 +17,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 // Main component
 export default function CreateSubscription() {
-  const router = useRouter();
-  const { subscriptionId } = router.query;
+  const navigate = useNavigate();
+  const { id: subscriptionId } = useParams();
   const { toast } = useToast();
 
   // State declarations
@@ -63,18 +63,18 @@ export default function CreateSubscription() {
               'not_included' in data) {
             
             // Set subscription data
-            setName(data.name as string);
-            setPrice(Number(data.price));
-            setDescription(data.description as string || '');
-            setIsPopular(Boolean(data.popular));
+            setName((data.name as string) || '');
+            setPrice(Number(data.price) || 0);
+            setDescription((data.description as string) || '');
+            setIsPopular(Boolean(data.popular) || false);
             
             // Handle arrays from database
             if (Array.isArray(data.features)) {
-              setFeatures(data.features);
+              setFeatures(data.features.length > 0 ? data.features : ['']);
             }
             
             if (Array.isArray(data.not_included)) {
-              setNotIncluded(data.not_included);
+              setNotIncluded(data.not_included.length > 0 ? data.not_included : ['']);
             }
           }
         } catch (err) {
@@ -86,7 +86,7 @@ export default function CreateSubscription() {
     };
 
     fetchSubscription();
-  }, [subscriptionId]);
+  }, [subscriptionId, toast]);
 
   // Function to handle saving the subscription plan
   const handleSave = async () => {
@@ -98,8 +98,8 @@ export default function CreateSubscription() {
         price,
         description,
         popular: isPopular,
-        features,
-        not_included: notIncluded,
+        features: features.filter(f => f.trim() !== ''),
+        not_included: notIncluded.filter(n => n.trim() !== ''),
       };
 
       if (subscriptionId) {
@@ -125,7 +125,7 @@ export default function CreateSubscription() {
         });
       }
 
-      router.push('/admin/subscriptions');
+      navigate('/admin/subscriptions');
     } catch (error) {
       console.error('Error saving subscription:', error);
       toast({
@@ -302,18 +302,26 @@ export default function CreateSubscription() {
                     <Input
                       type="text"
                       value={feature}
-                      onChange={(e) => updateFeature(index, e.target.value)}
+                      onChange={(e) => {
+                        const newFeatures = [...features];
+                        newFeatures[index] = e.target.value;
+                        setFeatures(newFeatures);
+                      }}
                     />
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => removeFeature(index)}
+                      onClick={() => {
+                        const newFeatures = [...features];
+                        newFeatures.splice(index, 1);
+                        setFeatures(newFeatures.length ? newFeatures : ['']);
+                      }}
                     >
                       <Trash className="h-4 w-4" />
                     </Button>
                   </div>
                 ))}
-                <Button variant="secondary" size="sm" onClick={addFeature}>
+                <Button variant="secondary" size="sm" onClick={() => setFeatures([...features, ''])}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Feature
                 </Button>
@@ -326,18 +334,26 @@ export default function CreateSubscription() {
                     <Input
                       type="text"
                       value={item}
-                      onChange={(e) => updateNotIncluded(index, e.target.value)}
+                      onChange={(e) => {
+                        const newNotIncluded = [...notIncluded];
+                        newNotIncluded[index] = e.target.value;
+                        setNotIncluded(newNotIncluded);
+                      }}
                     />
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => removeNotIncluded(index)}
+                      onClick={() => {
+                        const newNotIncluded = [...notIncluded];
+                        newNotIncluded.splice(index, 1);
+                        setNotIncluded(newNotIncluded.length ? newNotIncluded : ['']);
+                      }}
                     >
                       <Trash className="h-4 w-4" />
                     </Button>
                   </div>
                 ))}
-                <Button variant="secondary" size="sm" onClick={addNotIncluded}>
+                <Button variant="secondary" size="sm" onClick={() => setNotIncluded([...notIncluded, ''])}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Item
                 </Button>

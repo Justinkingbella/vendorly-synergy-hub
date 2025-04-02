@@ -138,7 +138,7 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
         
         const { error: updateError } = await appSettingsTable()
           .update(updateData)
-          .eq('id', data.id);
+          .eq('id', data.id as string);
           
         if (updateError) {
           throw updateError;

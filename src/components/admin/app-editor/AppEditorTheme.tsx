@@ -63,13 +63,13 @@ const AppEditorTheme = () => {
             setStoreThemeId(data.id as string);
             // If there are settings in the database, update the context
             updateThemeSettings({
-              mode: data.mode as 'light' | 'dark' | 'system',
-              primaryColor: data.primary_color as string,
-              secondaryColor: data.secondary_color as string,
-              accentColor: data.accent_color as string,
-              fontFamily: data.font_family as string,
-              borderRadius: data.border_radius as string,
-              customCss: (data.custom_css as string) || '',
+              mode: (data.mode as 'light' | 'dark' | 'system') || 'light',
+              primaryColor: (data.primary_color as string) || '#000000',
+              secondaryColor: (data.secondary_color as string) || '#ffffff',
+              accentColor: (data.accent_color as string) || '#3b82f6',
+              fontFamily: (data.font_family as string) || 'Inter, sans-serif',
+              borderRadius: (data.border_radius as string) || '0.5rem',
+              customCss: ((data.custom_css as string) || '') || '',
             });
           } else {
             console.error('Theme settings data missing expected properties:', data);
