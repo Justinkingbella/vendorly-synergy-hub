@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '@/components/layout/AdminLayout';
@@ -9,7 +10,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import { Check, Plus, X, Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { subscriptionPlansTable, type SubscriptionPlan } from '@/integrations/supabase/client';
+import { 
+  subscriptionPlansTable, 
+  type SubscriptionPlan,
+  type InsertSubscriptionPlan
+} from '@/integrations/supabase/client';
 
 interface SubscriptionPlanState {
   id?: string;
@@ -46,7 +51,7 @@ const CreateSubscription = () => {
         setIsLoading(true);
         const { data, error } = await subscriptionPlansTable()
           .select('*')
-          .eq('id', id)
+          .eq('id', id as string)
           .single();
           
         if (error) throw error;
@@ -136,7 +141,7 @@ const CreateSubscription = () => {
       const filteredFeatures = plan.features.filter(f => f.trim() !== '');
       const filteredNotIncluded = plan.notIncluded.filter(n => n.trim() !== '');
       
-      const subscriptionData = {
+      const subscriptionData: InsertSubscriptionPlan = {
         name: plan.name,
         price: parseFloat(plan.price) || 0,
         description: plan.description,
@@ -153,7 +158,8 @@ const CreateSubscription = () => {
           .eq('id', plan.id);
       } else {
         result = await subscriptionPlansTable()
-          .insert(subscriptionData);
+          .insert(subscriptionData)
+          .select();
       }
       
       if (result.error) throw result.error;

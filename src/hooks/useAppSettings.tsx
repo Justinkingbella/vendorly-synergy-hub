@@ -1,7 +1,11 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from '@/hooks/use-toast';
-import { appSettingsTable, type AppSetting } from '@/integrations/supabase/client';
+import { 
+  appSettingsTable, 
+  type AppSetting,
+  type InsertAppSetting
+} from '@/integrations/supabase/client';
 
 interface AppSettings {
   theme: 'light' | 'dark' | 'system';
@@ -53,12 +57,14 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
           });
         } else {
           // If no settings found, create default settings
+          const appData: InsertAppSetting = {
+            theme: defaultSettings.theme,
+            notifications: defaultSettings.notifications,
+            font_size: defaultSettings.fontSize,
+          };
+          
           const { error: insertError } = await appSettingsTable()
-            .insert([{
-              theme: defaultSettings.theme,
-              notifications: defaultSettings.notifications,
-              font_size: defaultSettings.fontSize,
-            }]);
+            .insert([appData]);
             
           if (insertError) {
             console.error('Error creating default app settings:', insertError);
@@ -97,13 +103,15 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
         
       if (data?.id) {
         // Update existing settings
+        const updateData: InsertAppSetting = {
+          theme: updatedSettings.theme,
+          notifications: updatedSettings.notifications,
+          font_size: updatedSettings.fontSize,
+          updated_at: new Date().toISOString(),
+        };
+        
         const { error } = await appSettingsTable()
-          .update({
-            theme: updatedSettings.theme,
-            notifications: updatedSettings.notifications,
-            font_size: updatedSettings.fontSize,
-            updated_at: new Date().toISOString(),
-          })
+          .update(updateData)
           .eq('id', data.id);
           
         if (error) {

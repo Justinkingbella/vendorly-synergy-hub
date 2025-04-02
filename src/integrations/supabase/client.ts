@@ -16,20 +16,75 @@ export type Tables<T extends keyof Database['public']['Tables']> = Database['pub
 export type InsertTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
 export type UpdateTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
 
-// Type-safe wrapper for subscription_plans table
-export const subscriptionPlansTable = () => supabase.from('subscription_plans');
-export type SubscriptionPlan = Tables<'subscription_plans'>;
-export type InsertSubscriptionPlan = InsertTables<'subscription_plans'>;
-export type UpdateSubscriptionPlan = UpdateTables<'subscription_plans'>;
+// Custom type definitions for tables not yet in types.ts
+// These will be used until the types.ts file is regenerated with the new tables
 
-// Type-safe wrapper for store_theme_settings table
-export const storeThemeSettingsTable = () => supabase.from('store_theme_settings');
-export type StoreThemeSetting = Tables<'store_theme_settings'>;
-export type InsertStoreThemeSetting = InsertTables<'store_theme_settings'>;
-export type UpdateStoreThemeSetting = UpdateTables<'store_theme_settings'>;
+// Interface for store_theme_settings table
+interface StoreThemeSettingsRow {
+  id: string;
+  mode: 'light' | 'dark' | 'system';
+  primary_color: string;
+  secondary_color: string;
+  accent_color: string;
+  font_family: string;
+  border_radius: string;
+  custom_css?: string;
+  created_at: string;
+  updated_at: string;
+}
 
-// Type-safe wrapper for app_settings table
+interface StoreThemeSettingsInsert {
+  id?: string;
+  mode?: 'light' | 'dark' | 'system';
+  primary_color?: string;
+  secondary_color?: string;
+  accent_color?: string;
+  font_family?: string;
+  border_radius?: string;
+  custom_css?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Interface for subscription_plans table
+interface SubscriptionPlanRow {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+  popular?: boolean;
+  features: string[];
+  not_included: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+interface SubscriptionPlanInsert {
+  id?: string;
+  name: string;
+  price: number;
+  description?: string;
+  popular?: boolean;
+  features?: string[];
+  not_included?: string[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Type-safe wrapper functions
 export const appSettingsTable = () => supabase.from('app_settings');
 export type AppSetting = Tables<'app_settings'>;
 export type InsertAppSetting = InsertTables<'app_settings'>;
 export type UpdateAppSetting = UpdateTables<'app_settings'>;
+
+// Custom wrapper for subscription_plans table
+export const subscriptionPlansTable = () => supabase.from<SubscriptionPlanRow>('subscription_plans');
+export type SubscriptionPlan = SubscriptionPlanRow;
+export type InsertSubscriptionPlan = SubscriptionPlanInsert;
+export type UpdateSubscriptionPlan = Partial<SubscriptionPlanInsert>;
+
+// Custom wrapper for store_theme_settings table
+export const storeThemeSettingsTable = () => supabase.from<StoreThemeSettingsRow>('store_theme_settings');
+export type StoreThemeSetting = StoreThemeSettingsRow;
+export type InsertStoreThemeSetting = StoreThemeSettingsInsert;
+export type UpdateStoreThemeSetting = Partial<StoreThemeSettingsInsert>;

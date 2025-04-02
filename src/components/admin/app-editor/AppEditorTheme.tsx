@@ -20,7 +20,11 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { Paintbrush, Moon, Sun, Monitor, Loader2 } from 'lucide-react';
-import { storeThemeSettingsTable, type StoreThemeSetting } from '@/integrations/supabase/client';
+import { 
+  storeThemeSettingsTable, 
+  type StoreThemeSetting, 
+  type InsertStoreThemeSetting 
+} from '@/integrations/supabase/client';
 
 const AppEditorTheme = () => {
   const { toast } = useToast();
@@ -58,16 +62,18 @@ const AppEditorTheme = () => {
           });
         } else {
           // If no settings exist, create a default record
+          const themeData: InsertStoreThemeSetting = {
+            mode: themeSettings.mode,
+            primary_color: themeSettings.primaryColor,
+            secondary_color: themeSettings.secondaryColor,
+            accent_color: themeSettings.accentColor,
+            font_family: themeSettings.fontFamily,
+            border_radius: themeSettings.borderRadius,
+            custom_css: themeSettings.customCss,
+          };
+          
           const { data: newData, error: insertError } = await storeThemeSettingsTable()
-            .insert([{
-              mode: themeSettings.mode,
-              primary_color: themeSettings.primaryColor,
-              secondary_color: themeSettings.secondaryColor,
-              accent_color: themeSettings.accentColor,
-              font_family: themeSettings.fontFamily,
-              border_radius: themeSettings.borderRadius,
-              custom_css: themeSettings.customCss,
-            }])
+            .insert([themeData])
             .select();
             
           if (insertError) {
@@ -102,7 +108,7 @@ const AppEditorTheme = () => {
     try {
       setIsSaving(true);
       
-      const themeData = {
+      const themeData: InsertStoreThemeSetting = {
         mode: themeSettings.mode,
         primary_color: themeSettings.primaryColor,
         secondary_color: themeSettings.secondaryColor,
