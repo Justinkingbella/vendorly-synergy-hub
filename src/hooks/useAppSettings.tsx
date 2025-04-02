@@ -43,10 +43,13 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
           .limit(1)
           .single();
           
-        if (error && error.code !== 'PGRST116') {
-          // PGRST116 means no rows returned, which is fine for a new app
-          console.error('Error fetching app settings:', error);
-          throw error;
+        if (error) {
+          if (error.code !== 'PGRST116') {
+            // PGRST116 means no rows returned, which is fine for a new app
+            console.error('Error fetching app settings:', error);
+          }
+          // Fall back to defaults
+          return;
         }
         
         if (data) {
@@ -95,12 +98,16 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem('app-settings', JSON.stringify(updatedSettings));
       
       // Get the latest settings record
-      const { data } = await appSettingsTable()
+      const { data, error } = await appSettingsTable()
         .select('id')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
         
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      
       if (data?.id) {
         // Update existing settings
         const updateData: InsertAppSetting = {
@@ -110,12 +117,12 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
           updated_at: new Date().toISOString(),
         };
         
-        const { error } = await appSettingsTable()
+        const { error: updateError } = await appSettingsTable()
           .update(updateData)
           .eq('id', data.id);
           
-        if (error) {
-          throw error;
+        if (updateError) {
+          throw updateError;
         }
       }
     } catch (err) {

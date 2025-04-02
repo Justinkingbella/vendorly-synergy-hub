@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '@/components/layout/AdminLayout';
@@ -53,7 +54,15 @@ const CreateSubscription = () => {
           .eq('id', id as string)
           .single();
           
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching subscription plan:', error);
+          toast({
+            title: 'Error',
+            description: 'Failed to load subscription plan. Please try again.',
+            variant: 'destructive',
+          });
+          return;
+        }
         
         if (data) {
           setPlan({

@@ -43,8 +43,10 @@ const AppEditorTheme = () => {
           .limit(1)
           .single();
           
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching theme settings:', error);
+        if (error) {
+          if (error.code !== 'PGRST116') {
+            console.error('Error fetching theme settings:', error);
+          }
           return;
         }
         
