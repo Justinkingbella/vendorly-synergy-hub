@@ -17,7 +17,7 @@ export type Tables<T extends keyof Database['public']['Tables']> = Database['pub
 export type InsertTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
 export type UpdateTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
 
-// Direct database access - untyped but allows custom tables not in the schema yet
+// Direct database access helper that handles untyped tables
 export const rawQuery = {
   from: (tableName: string) => {
     return {
@@ -25,11 +25,22 @@ export const rawQuery = {
       insert: (values: any, options?: any) => supabase.from(tableName).insert(values, options),
       update: (values: any) => supabase.from(tableName).update(values),
       delete: () => supabase.from(tableName).delete(),
-      eq: (column: string, value: any) => supabase.from(tableName).eq(column, value),
-      single: () => supabase.from(tableName).select('*').single(),
-      order: (column: string, options?: { ascending?: boolean }) => 
-        supabase.from(tableName).select('*').order(column, options),
-      limit: (count: number) => supabase.from(tableName).select('*').limit(count),
+      eq: (column: string, value: any) => {
+        const query = supabase.from(tableName);
+        return query.select('*').eq(column, value);
+      },
+      single: () => {
+        const query = supabase.from(tableName);
+        return query.select('*').single();
+      },
+      order: (column: string, options?: { ascending?: boolean }) => {
+        const query = supabase.from(tableName);
+        return query.select('*').order(column, options);
+      },
+      limit: (count: number) => {
+        const query = supabase.from(tableName);
+        return query.select('*').limit(count);
+      },
     };
   }
 };
@@ -113,9 +124,6 @@ export const subscriptionPlansTable = () => {
   return {
     select: (columns = '*') => rawQuery.from('subscription_plans').select(columns),
     insert: (values: SubscriptionPlanInsert | SubscriptionPlanInsert[]) => {
-      if (Array.isArray(values)) {
-        return rawQuery.from('subscription_plans').insert(values);
-      }
       return rawQuery.from('subscription_plans').insert(values);
     },
     update: (values: Partial<SubscriptionPlanInsert>) => rawQuery.from('subscription_plans').update(values),
@@ -134,9 +142,6 @@ export const storeThemeSettingsTable = () => {
   return {
     select: (columns = '*') => rawQuery.from('store_theme_settings').select(columns),
     insert: (values: StoreThemeSettingsInsert | StoreThemeSettingsInsert[]) => {
-      if (Array.isArray(values)) {
-        return rawQuery.from('store_theme_settings').insert(values);
-      }
       return rawQuery.from('store_theme_settings').insert(values);
     },
     update: (values: Partial<StoreThemeSettingsInsert>) => rawQuery.from('store_theme_settings').update(values),
@@ -149,3 +154,4 @@ export const storeThemeSettingsTable = () => {
   };
 };
 export type StoreThemeSetting = StoreThemeSettingsRow;
+

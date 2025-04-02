@@ -52,29 +52,23 @@ export default function CreateSubscription() {
             return;
           }
           
-          // Type guard to ensure data has the expected properties
-          if (data && typeof data === 'object' && 
-              'id' in data && 
-              'name' in data && 
-              'price' in data && 
-              'description' in data && 
-              'popular' in data && 
-              'features' in data && 
-              'not_included' in data) {
+          // Safely handle potentially null data
+          if (data) {
+            const subData = data as Record<string, any>;
             
-            // Set subscription data
-            setName((data.name as string) || '');
-            setPrice(Number(data.price) || 0);
-            setDescription((data.description as string) || '');
-            setIsPopular(Boolean(data.popular) || false);
+            // Set subscription data with null checks
+            setName(subData.name ? String(subData.name) : '');
+            setPrice(subData.price !== undefined ? Number(subData.price) : 0);
+            setDescription(subData.description ? String(subData.description) : '');
+            setIsPopular(subData.popular ? Boolean(subData.popular) : false);
             
-            // Handle arrays from database
-            if (Array.isArray(data.features)) {
-              setFeatures(data.features.length > 0 ? data.features : ['']);
+            // Handle arrays from database with null checks
+            if (subData.features && Array.isArray(subData.features)) {
+              setFeatures(subData.features.length > 0 ? subData.features : ['']);
             }
             
-            if (Array.isArray(data.not_included)) {
-              setNotIncluded(data.not_included.length > 0 ? data.not_included : ['']);
+            if (subData.not_included && Array.isArray(subData.not_included)) {
+              setNotIncluded(subData.not_included.length > 0 ? subData.not_included : ['']);
             }
           }
         } catch (err) {

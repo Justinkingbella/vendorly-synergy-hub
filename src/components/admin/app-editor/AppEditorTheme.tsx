@@ -51,28 +51,30 @@ const AppEditorTheme = () => {
         }
         
         if (data && typeof data === 'object') {
-          // Type guard to ensure data has all the expected properties
-          if ('id' in data && 
-              'mode' in data && 
-              'primary_color' in data && 
-              'secondary_color' in data && 
-              'accent_color' in data && 
-              'font_family' in data && 
-              'border_radius' in data) {
+          const themeData = data as Record<string, any>;
+          
+          // Safely check if the required properties exist
+          if ('id' in themeData && 
+              'mode' in themeData && 
+              'primary_color' in themeData && 
+              'secondary_color' in themeData && 
+              'accent_color' in themeData && 
+              'font_family' in themeData && 
+              'border_radius' in themeData) {
             
-            setStoreThemeId(data.id as string);
+            setStoreThemeId(themeData.id as string);
             // If there are settings in the database, update the context
             updateThemeSettings({
-              mode: (data.mode as 'light' | 'dark' | 'system') || 'light',
-              primaryColor: (data.primary_color as string) || '#000000',
-              secondaryColor: (data.secondary_color as string) || '#ffffff',
-              accentColor: (data.accent_color as string) || '#3b82f6',
-              fontFamily: (data.font_family as string) || 'Inter, sans-serif',
-              borderRadius: (data.border_radius as string) || '0.5rem',
-              customCss: ((data.custom_css as string) || '') || '',
+              mode: (themeData.mode as 'light' | 'dark' | 'system') || 'light',
+              primaryColor: (themeData.primary_color as string) || '#000000',
+              secondaryColor: (themeData.secondary_color as string) || '#ffffff',
+              accentColor: (themeData.accent_color as string) || '#3b82f6',
+              fontFamily: (themeData.font_family as string) || 'Inter, sans-serif',
+              borderRadius: (themeData.border_radius as string) || '0.5rem',
+              customCss: ('custom_css' in themeData ? (themeData.custom_css as string) : '') || '',
             });
           } else {
-            console.error('Theme settings data missing expected properties:', data);
+            console.error('Theme settings data missing expected properties:', themeData);
           }
         } else {
           // If no settings exist, create a default record
@@ -103,8 +105,11 @@ const AppEditorTheme = () => {
           
         if (error) {
           console.error('Error creating default theme settings:', error);
-        } else if (data && Array.isArray(data) && data.length > 0 && 'id' in data[0]) {
-          setStoreThemeId(data[0].id as string);
+        } else if (data && Array.isArray(data) && data.length > 0) {
+          const createdData = data[0] as Record<string, any>;
+          if ('id' in createdData) {
+            setStoreThemeId(createdData.id as string);
+          }
         }
       } catch (err) {
         console.error('Failed to create default theme settings:', err);
@@ -155,8 +160,12 @@ const AppEditorTheme = () => {
           .select();
           
         if (error) throw error;
-        if (data && Array.isArray(data) && data.length > 0 && 'id' in data[0]) {
-          setStoreThemeId(data[0].id as string);
+        
+        if (data && Array.isArray(data) && data.length > 0) {
+          const createdData = data[0] as Record<string, any>;
+          if ('id' in createdData) {
+            setStoreThemeId(createdData.id as string);
+          }
         }
       }
       
