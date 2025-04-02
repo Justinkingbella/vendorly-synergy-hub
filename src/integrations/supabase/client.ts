@@ -80,12 +80,34 @@ export type UpdateAppSetting = UpdateTables<'app_settings'>;
 
 // Custom wrapper for subscription_plans table with proper typing
 export const subscriptionPlansTable = () => {
-  return supabase.from('subscription_plans') as unknown as PostgrestQueryBuilder<any, any, SubscriptionPlanRow>;
+  const queryBuilder = supabase.from('subscription_plans');
+  
+  return {
+    select: (columns = '*') => queryBuilder.select(columns),
+    insert: (values: SubscriptionPlanInsert | SubscriptionPlanInsert[]) => queryBuilder.insert(values),
+    update: (values: Partial<SubscriptionPlanInsert>) => queryBuilder.update(values),
+    delete: () => queryBuilder.delete(),
+    eq: (column: string, value: any) => queryBuilder.eq(column, value),
+    single: () => queryBuilder.single(),
+    order: (column: string, options?: { ascending?: boolean }) => queryBuilder.order(column, options),
+    limit: (count: number) => queryBuilder.limit(count),
+  };
 };
 export type SubscriptionPlan = SubscriptionPlanRow;
 
 // Custom wrapper for store_theme_settings table with proper typing
 export const storeThemeSettingsTable = () => {
-  return supabase.from('store_theme_settings') as unknown as PostgrestQueryBuilder<any, any, StoreThemeSettingsRow>;
+  const queryBuilder = supabase.from('store_theme_settings');
+  
+  return {
+    select: (columns = '*') => queryBuilder.select(columns),
+    insert: (values: StoreThemeSettingsInsert | StoreThemeSettingsInsert[]) => queryBuilder.insert(values),
+    update: (values: Partial<StoreThemeSettingsInsert>) => queryBuilder.update(values),
+    delete: () => queryBuilder.delete(),
+    eq: (column: string, value: any) => queryBuilder.eq(column, value),
+    single: () => queryBuilder.single(),
+    order: (column: string, options?: { ascending?: boolean }) => queryBuilder.order(column, options),
+    limit: (count: number) => queryBuilder.limit(count),
+  };
 };
 export type StoreThemeSetting = StoreThemeSettingsRow;

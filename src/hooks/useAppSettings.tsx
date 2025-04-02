@@ -53,11 +53,14 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
         }
         
         if (data) {
-          setSettings({
-            theme: data.theme as 'light' | 'dark' | 'system',
-            notifications: data.notifications || false,
-            fontSize: data.font_size as 'small' | 'medium' | 'large',
-          });
+          // Type guard to ensure data has the expected properties
+          if ('theme' in data && 'notifications' in data && 'font_size' in data) {
+            setSettings({
+              theme: data.theme as 'light' | 'dark' | 'system',
+              notifications: data.notifications || false,
+              fontSize: data.font_size as 'small' | 'medium' | 'large',
+            });
+          }
         } else {
           // If no settings found, create default settings
           const appData: InsertAppSetting = {
@@ -66,13 +69,8 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
             font_size: defaultSettings.fontSize,
           };
           
-          const { error: insertError } = await appSettingsTable()
+          await appSettingsTable()
             .insert(appData);
-            
-          if (insertError) {
-            console.error('Error creating default app settings:', insertError);
-            // Fall back to default settings if insert fails
-          }
         }
       } catch (err) {
         console.error('Failed to fetch app settings:', err);
@@ -108,7 +106,7 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
       
-      if (data?.id) {
+      if (data && 'id' in data) {
         // Update existing settings
         const updateData: InsertAppSetting = {
           theme: updatedSettings.theme,
@@ -117,13 +115,9 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
           updated_at: new Date().toISOString(),
         };
         
-        const { error: updateError } = await appSettingsTable()
+        await appSettingsTable()
           .update(updateData)
           .eq('id', data.id);
-          
-        if (updateError) {
-          throw updateError;
-        }
       }
     } catch (err) {
       console.error('Failed to update app settings:', err);
