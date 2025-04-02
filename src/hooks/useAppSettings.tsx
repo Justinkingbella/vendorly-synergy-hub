@@ -1,66 +1,54 @@
 
-import { useStoreSettings } from '@/context/StoreSettingsContext';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-/**
- * A hook that provides access to app settings with
- * convenient methods for specific components
- */
-export const useAppSettings = () => {
-  const storeSettings = useStoreSettings();
-  
-  // Get active navigation links
-  const getActiveNavLinks = () => {
-    return storeSettings.navLinks.filter(link => link.isActive);
-  };
-  
-  // Get store icon by name (for features, etc.)
-  const getIconByName = (iconName: string) => {
-    // This is a placeholder. In a real app, you would dynamically import icons
-    return iconName;
-  };
-  
-  // Get page content by ID
-  const getPageContent = (pageId: string) => {
-    if (storeSettings.pages[pageId]) {
-      return storeSettings.pages[pageId];
-    }
-    return null;
-  };
-  
-  // Get store info
-  const getStoreInfo = () => {
-    return storeSettings.storeInfo;
-  };
-  
-  // Get banner images
-  const getBanners = () => {
-    return storeSettings.banners;
-  };
-  
-  // Get features
-  const getFeatures = () => {
-    return storeSettings.features;
-  };
-  
-  // Get footer columns
-  const getFooterColumns = () => {
-    return storeSettings.footerColumns;
-  };
-  
-  // Get contact info
-  const getContactInfo = () => {
-    return storeSettings.contactInfo;
-  };
-  
-  return {
-    getActiveNavLinks,
-    getIconByName,
-    getPageContent,
-    getStoreInfo,
-    getBanners,
-    getFeatures,
-    getFooterColumns,
-    getContactInfo,
-    ...storeSettings,
-  };
+interface AppSettings {
+  theme: 'light' | 'dark' | 'system';
+  notifications: boolean;
+  fontSize: 'small' | 'medium' | 'large';
+}
+
+interface AppSettingsContextType {
+  settings: AppSettings;
+  updateSettings: (newSettings: Partial<AppSettings>) => void;
+}
+
+const defaultSettings: AppSettings = {
+  theme: 'light',
+  notifications: true,
+  fontSize: 'medium',
 };
+
+const AppSettingsContext = createContext<AppSettingsContextType | undefined>(undefined);
+
+export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
+  const [settings, setSettings] = useState<AppSettings>(() => {
+    const savedSettings = localStorage.getItem('app-settings');
+    return savedSettings ? JSON.parse(savedSettings) : defaultSettings;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('app-settings', JSON.stringify(settings));
+  }, [settings]);
+
+  const updateSettings = (newSettings: Partial<AppSettings>) => {
+    setSettings((prev) => ({ ...prev, ...newSettings }));
+  };
+
+  return (
+    <AppSettingsContext.Provider value={{ settings, updateSettings }}>
+      {children}
+    </AppSettingsContext.Provider>
+  );
+};
+
+export const useAppSettings = () => {
+  const context = useContext(AppSettingsContext);
+  
+  if (context === undefined) {
+    throw new Error('useAppSettings must be used within an AppSettingsProvider');
+  }
+  
+  return context;
+};
+
+export default useAppSettings;

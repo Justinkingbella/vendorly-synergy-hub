@@ -27,6 +27,23 @@ body {
   --primary: #10b981;
   --primary-hover: #059669;
   --primary-foreground: #ffffff;
+  --background: #ffffff;
+  --foreground: #1f2937;
+  --card: #ffffff;
+  --card-foreground: #1f2937;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+  --ring: #10b981;
+}
+
+.dark {
+  --background: #111827;
+  --foreground: #f9fafb;
+  --card: #1f2937;
+  --card-foreground: #f9fafb;
+  --border: #374151;
+  --input: #374151;
+  --ring: #10b981;
 }
 
 /* Selection styling */
@@ -41,13 +58,47 @@ body {
   outline-offset: 2px;
 }
 
+/* Button styling fixes */
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 /* Enhanced button hover effects */
 button:not(:disabled):hover {
   transform: translateY(-1px);
   transition: transform 0.2s;
 }
 
-/* Placeholder for backward compatibility with existing code */
+/* Fix for inputs */
+input, textarea, select {
+  font-family: inherit;
+}
+
+/* Improve link styling */
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Card enhancements */
+.card {
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--card-foreground);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Backwards compatibility */
 .logo {
   height: 6em;
   padding: 1.5em;

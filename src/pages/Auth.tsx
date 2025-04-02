@@ -1,209 +1,160 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Lock, Mail, User } from 'lucide-react';
 import StoreLayout from '@/components/layout/StoreLayout';
-import SEO from '@/components/layout/SEO';
-
-type UserRole = 'customer' | 'vendor';
 
 export default function Auth() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
-  const [userRole, setUserRole] = useState<UserRole>('customer');
+  const [activeTab, setActiveTab] = useState('login');
   
-  // Check if we're at the vendor registration path
-  useEffect(() => {
-    if (location.pathname === '/vendor/register') {
-      setActiveTab('register');
-      setUserRole('vendor');
-    }
-  }, [location.pathname]);
-
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Simulate successful login
-    toast.success('Logged in successfully!');
-    
-    // Redirect based on role
-    if (userRole === 'vendor') {
-      navigate('/vendor/dashboard');
-    } else {
-      navigate('/customer/dashboard');
-    }
+    toast.success('Successfully logged in!');
+    navigate('/customer/dashboard');
   };
   
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (userRole === 'vendor') {
-      // For vendors, first redirect them to subscription choice if registering
-      navigate('/vendor/subscription');
-      toast.success('Account created successfully! Choose your subscription plan.');
-    } else {
-      // For customers, just show success and go to login
-      toast.success('Account created successfully!');
-      setActiveTab('login');
-    }
+    toast.success('Account created successfully!');
+    navigate('/customer/dashboard');
   };
-
-  // Set page title based on context
-  const pageTitle = location.pathname === '/vendor/register' 
-    ? 'Vendor Registration' 
-    : (activeTab === 'login' ? 'Login' : 'Register');
   
   return (
-    <StoreLayout>
-      <SEO 
-        title={pageTitle} 
-        description={
-          location.pathname === '/vendor/register'
-            ? 'Register as a vendor on MarketHub and start selling your products.'
-            : 'Login or create an account to shop on MarketHub.'
-        }
-      />
-      <div className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-        <Card className="w-full max-w-md">
-          <div className="flex justify-between items-center p-6">
-            <CardTitle className="text-2xl font-bold">Welcome</CardTitle>
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm" onClick={() => navigate('/')}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Store
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => navigate('/admin/auth')}>
-                Admin Login
-              </Button>
-            </div>
-          </div>
+    <StoreLayout title="Login or Register" description="Create an account or sign in to access your account">
+      <div className="container max-w-md mx-auto py-10 px-4">
+        <Button 
+          variant="ghost" 
+          className="mb-6 flex items-center gap-2 hover:bg-gray-100" 
+          onClick={() => navigate('/')}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Return to Store
+        </Button>
+        
+        <Card className="border border-gray-200 shadow-sm">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">Welcome</CardTitle>
+            <CardDescription className="text-center">
+              Sign in to your account or create a new one
+            </CardDescription>
+          </CardHeader>
           
-          <CardDescription className="px-6">
-            {activeTab === 'login' 
-              ? 'Enter your credentials to access your account' 
-              : 'Create an account to get started'}
-          </CardDescription>
-          
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'login' | 'register')}>
-            <div className="px-6 pt-2">
-              <TabsList className="grid w-full grid-cols-2">
+          <CardContent>
+            <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="login">Login</TabsTrigger>
                 <TabsTrigger value="register">Register</TabsTrigger>
               </TabsList>
-            </div>
-            
-            <CardContent className="pt-6">
+              
               <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="name@example.com" required />
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                      <Input 
+                        id="email" 
+                        type="email" 
+                        placeholder="you@example.com" 
+                        required 
+                        className="pl-10"
+                      />
+                    </div>
                   </div>
                   
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="password">Password</Label>
-                      <a href="#" className="text-sm text-blue-600 hover:text-blue-800">
+                      <a href="#" className="text-sm text-primary hover:underline">
                         Forgot password?
                       </a>
                     </div>
-                    <Input id="password" type="password" required />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Login as</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button 
-                        type="button" 
-                        variant={userRole === 'customer' ? 'default' : 'outline'} 
-                        onClick={() => setUserRole('customer')}
-                      >
-                        Customer
-                      </Button>
-                      <Button 
-                        type="button" 
-                        variant={userRole === 'vendor' ? 'default' : 'outline'} 
-                        onClick={() => setUserRole('vendor')}
-                      >
-                        Vendor
-                      </Button>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                      <Input id="password" type="password" required className="pl-10" />
                     </div>
                   </div>
                   
-                  <Button type="submit" className="w-full">Login</Button>
+                  <Button type="submit" className="w-full">Sign In</Button>
                 </form>
               </TabsContent>
               
               <TabsContent value="register">
                 <form onSubmit={handleRegister} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">First name</Label>
-                      <Input id="firstName" required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Last name</Label>
-                      <Input id="lastName" required />
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                      <Input id="name" placeholder="John Doe" required className="pl-10" />
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="name@example.com" required />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" required />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Register as</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button 
-                        type="button" 
-                        variant={userRole === 'customer' ? 'default' : 'outline'} 
-                        onClick={() => setUserRole('customer')}
-                      >
-                        Customer
-                      </Button>
-                      <Button 
-                        type="button" 
-                        variant={userRole === 'vendor' ? 'default' : 'outline'} 
-                        onClick={() => setUserRole('vendor')}
-                      >
-                        Vendor
-                      </Button>
+                    <Label htmlFor="registerEmail">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                      <Input 
+                        id="registerEmail" 
+                        type="email" 
+                        placeholder="you@example.com" 
+                        required 
+                        className="pl-10"
+                      />
                     </div>
                   </div>
                   
-                  {userRole === 'vendor' && (
-                    <div className="p-3 border rounded bg-amber-50 text-amber-800 text-sm">
-                      After registration, you'll need to select a subscription plan and set up your store details.
+                  <div className="space-y-2">
+                    <Label htmlFor="registerPassword">Password</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                      <Input id="registerPassword" type="password" required className="pl-10" />
                     </div>
-                  )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                      <Input id="confirmPassword" type="password" required className="pl-10" />
+                    </div>
+                  </div>
                   
                   <Button type="submit" className="w-full">Create Account</Button>
                 </form>
               </TabsContent>
-            </CardContent>
-          </Tabs>
+            </Tabs>
+          </CardContent>
           
-          <CardFooter className="flex flex-col space-y-4">
-            <div className="text-sm text-center text-muted-foreground">
+          <CardFooter className="flex flex-col space-y-4 border-t p-4">
+            <div className="text-center text-sm text-muted-foreground">
               By continuing, you agree to our{" "}
-              <a href="#" className="underline">Terms of Service</a> and{" "}
-              <a href="#" className="underline">Privacy Policy</a>.
+              <a href="/terms" className="text-primary hover:underline">
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a href="/privacy" className="text-primary hover:underline">
+                Privacy Policy
+              </a>
+              .
             </div>
           </CardFooter>
         </Card>
+        
+        <div className="mt-8 text-center">
+          <p className="text-sm text-muted-foreground">
+            Are you a vendor?{" "}
+            <a href="/become-vendor" className="text-primary hover:underline font-medium">
+              Join as a vendor
+            </a>
+          </p>
+        </div>
       </div>
     </StoreLayout>
   );
