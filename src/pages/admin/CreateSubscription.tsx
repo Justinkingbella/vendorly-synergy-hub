@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '@/components/layout/AdminLayout';
@@ -10,10 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import { Check, Plus, X, Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { supabase } from '@/integrations/supabase/client';
+import { subscriptionPlansTable, type SubscriptionPlan } from '@/integrations/supabase/client';
 
-// Define subscription plan interface
-interface SubscriptionPlan {
+interface SubscriptionPlanState {
   id?: string;
   name: string;
   price: string;
@@ -28,7 +26,7 @@ const CreateSubscription = () => {
   const { id } = useParams();
   const isEditMode = !!id;
   
-  const [plan, setPlan] = useState<SubscriptionPlan>({
+  const [plan, setPlan] = useState<SubscriptionPlanState>({
     name: '',
     price: '',
     description: '',
@@ -46,8 +44,7 @@ const CreateSubscription = () => {
       
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from('subscription_plans')
+        const { data, error } = await subscriptionPlansTable()
           .select('*')
           .eq('id', id)
           .single();
@@ -59,10 +56,10 @@ const CreateSubscription = () => {
             id: data.id,
             name: data.name,
             price: data.price.toString(),
-            description: data.description,
-            popular: data.popular,
-            features: data.features || [''],
-            notIncluded: data.not_included || [''],
+            description: data.description || '',
+            popular: data.popular || false,
+            features: data.features as string[] || [''],
+            notIncluded: data.not_included as string[] || [''],
           });
         }
       } catch (err) {
@@ -136,11 +133,9 @@ const CreateSubscription = () => {
     try {
       setIsSaving(true);
       
-      // Filter out empty features and notIncluded items
       const filteredFeatures = plan.features.filter(f => f.trim() !== '');
       const filteredNotIncluded = plan.notIncluded.filter(n => n.trim() !== '');
       
-      // Prepare data for Supabase
       const subscriptionData = {
         name: plan.name,
         price: parseFloat(plan.price) || 0,
@@ -153,15 +148,11 @@ const CreateSubscription = () => {
       let result;
       
       if (isEditMode && plan.id) {
-        // Update existing plan
-        result = await supabase
-          .from('subscription_plans')
+        result = await subscriptionPlansTable()
           .update(subscriptionData)
           .eq('id', plan.id);
       } else {
-        // Create new plan
-        result = await supabase
-          .from('subscription_plans')
+        result = await subscriptionPlansTable()
           .insert(subscriptionData);
       }
       
@@ -172,7 +163,6 @@ const CreateSubscription = () => {
         description: `The ${plan.name} plan has been ${isEditMode ? 'updated' : 'created'} successfully.`,
       });
       
-      // Navigate back to subscriptions page
       navigate('/admin/subscriptions');
     } catch (err) {
       console.error('Error saving subscription plan:', err);

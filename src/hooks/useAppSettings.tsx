@@ -1,7 +1,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { appSettingsTable, type AppSetting } from '@/integrations/supabase/client';
 
 interface AppSettings {
   theme: 'light' | 'dark' | 'system';
@@ -33,8 +33,7 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
         setIsLoading(true);
         
         // Try to get settings from Supabase
-        const { data, error } = await supabase
-          .from('app_settings')
+        const { data, error } = await appSettingsTable()
           .select('*')
           .order('created_at', { ascending: false })
           .limit(1)
@@ -54,8 +53,7 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
           });
         } else {
           // If no settings found, create default settings
-          const { error: insertError } = await supabase
-            .from('app_settings')
+          const { error: insertError } = await appSettingsTable()
             .insert([{
               theme: defaultSettings.theme,
               notifications: defaultSettings.notifications,
@@ -91,8 +89,7 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem('app-settings', JSON.stringify(updatedSettings));
       
       // Get the latest settings record
-      const { data } = await supabase
-        .from('app_settings')
+      const { data } = await appSettingsTable()
         .select('id')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -100,8 +97,7 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
         
       if (data?.id) {
         // Update existing settings
-        const { error } = await supabase
-          .from('app_settings')
+        const { error } = await appSettingsTable()
           .update({
             theme: updatedSettings.theme,
             notifications: updatedSettings.notifications,

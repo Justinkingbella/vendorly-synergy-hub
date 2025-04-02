@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -21,7 +20,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { Paintbrush, Moon, Sun, Monitor, Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { storeThemeSettingsTable, type StoreThemeSetting } from '@/integrations/supabase/client';
 
 const AppEditorTheme = () => {
   const { toast } = useToast();
@@ -34,8 +33,7 @@ const AppEditorTheme = () => {
     const fetchThemeSettings = async () => {
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from('store_theme_settings')
+        const { data, error } = await storeThemeSettingsTable()
           .select('*')
           .order('created_at', { ascending: false })
           .limit(1)
@@ -50,18 +48,17 @@ const AppEditorTheme = () => {
           setStoreThemeId(data.id);
           // If there are settings in the database, update the context
           updateThemeSettings({
-            mode: data.mode || 'light',
-            primaryColor: data.primary_color || '#3b82f6',
-            secondaryColor: data.secondary_color || '#10b981',
-            accentColor: data.accent_color || '#f59e0b',
-            fontFamily: data.font_family || 'Inter, sans-serif',
-            borderRadius: data.border_radius || '0.5rem',
+            mode: data.mode as 'light' | 'dark' | 'system',
+            primaryColor: data.primary_color,
+            secondaryColor: data.secondary_color,
+            accentColor: data.accent_color,
+            fontFamily: data.font_family,
+            borderRadius: data.border_radius,
             customCss: data.custom_css || '',
           });
         } else {
           // If no settings exist, create a default record
-          const { data: newData, error: insertError } = await supabase
-            .from('store_theme_settings')
+          const { data: newData, error: insertError } = await storeThemeSettingsTable()
             .insert([{
               mode: themeSettings.mode,
               primary_color: themeSettings.primaryColor,
@@ -118,16 +115,14 @@ const AppEditorTheme = () => {
       
       if (storeThemeId) {
         // Update existing record
-        const { error } = await supabase
-          .from('store_theme_settings')
+        const { error } = await storeThemeSettingsTable()
           .update(themeData)
           .eq('id', storeThemeId);
           
         if (error) throw error;
       } else {
         // Create new record if ID is not available
-        const { data, error } = await supabase
-          .from('store_theme_settings')
+        const { data, error } = await storeThemeSettingsTable()
           .insert([themeData])
           .select();
           
