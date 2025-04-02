@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -20,11 +20,74 @@ import {
 } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
-import { Paintbrush, Moon, Sun, Monitor } from 'lucide-react';
+import { Paintbrush, Moon, Sun, Monitor, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const AppEditorTheme = () => {
   const { toast } = useToast();
   const { themeSettings, updateThemeSettings } = useStoreSettings();
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [storeThemeId, setStoreThemeId] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const fetchThemeSettings = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('store_theme_settings')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+          
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching theme settings:', error);
+          return;
+        }
+        
+        if (data) {
+          setStoreThemeId(data.id);
+          // If there are settings in the database, update the context
+          updateThemeSettings({
+            mode: data.mode || 'light',
+            primaryColor: data.primary_color || '#3b82f6',
+            secondaryColor: data.secondary_color || '#10b981',
+            accentColor: data.accent_color || '#f59e0b',
+            fontFamily: data.font_family || 'Inter, sans-serif',
+            borderRadius: data.border_radius || '0.5rem',
+            customCss: data.custom_css || '',
+          });
+        } else {
+          // If no settings exist, create a default record
+          const { data: newData, error: insertError } = await supabase
+            .from('store_theme_settings')
+            .insert([{
+              mode: themeSettings.mode,
+              primary_color: themeSettings.primaryColor,
+              secondary_color: themeSettings.secondaryColor,
+              accent_color: themeSettings.accentColor,
+              font_family: themeSettings.fontFamily,
+              border_radius: themeSettings.borderRadius,
+              custom_css: themeSettings.customCss,
+            }])
+            .select();
+            
+          if (insertError) {
+            console.error('Error creating default theme settings:', insertError);
+          } else if (newData && newData[0]) {
+            setStoreThemeId(newData[0].id);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch theme settings:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchThemeSettings();
+  }, []);
   
   const handleThemeChange = (mode: 'light' | 'dark' | 'system') => {
     updateThemeSettings({ mode });
@@ -38,12 +101,71 @@ const AppEditorTheme = () => {
     updateThemeSettings({ [colorType]: value });
   };
 
-  const handleSaveChanges = () => {
-    toast({
-      title: "Theme settings saved",
-      description: "Your theme settings have been updated.",
-    });
+  const handleSaveChanges = async () => {
+    try {
+      setIsSaving(true);
+      
+      const themeData = {
+        mode: themeSettings.mode,
+        primary_color: themeSettings.primaryColor,
+        secondary_color: themeSettings.secondaryColor,
+        accent_color: themeSettings.accentColor,
+        font_family: themeSettings.fontFamily,
+        border_radius: themeSettings.borderRadius,
+        custom_css: themeSettings.customCss,
+        updated_at: new Date().toISOString(),
+      };
+      
+      if (storeThemeId) {
+        // Update existing record
+        const { error } = await supabase
+          .from('store_theme_settings')
+          .update(themeData)
+          .eq('id', storeThemeId);
+          
+        if (error) throw error;
+      } else {
+        // Create new record if ID is not available
+        const { data, error } = await supabase
+          .from('store_theme_settings')
+          .insert([themeData])
+          .select();
+          
+        if (error) throw error;
+        if (data && data[0]) {
+          setStoreThemeId(data[0].id);
+        }
+      }
+      
+      toast({
+        title: "Theme settings saved",
+        description: "Your theme settings have been updated.",
+      });
+    } catch (err) {
+      console.error('Failed to save theme settings:', err);
+      toast({
+        title: "Error",
+        description: "Failed to save theme settings. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <Card className="hover:border-primary transition-colors">
+        <CardHeader>
+          <CardTitle>Theme Settings</CardTitle>
+          <CardDescription>Loading theme settings...</CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center items-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="hover:border-primary transition-colors">
@@ -194,9 +316,18 @@ const AppEditorTheme = () => {
         </div>
         
         <div className="flex justify-end">
-          <Button onClick={handleSaveChanges}>
-            <Paintbrush className="h-4 w-4 mr-2" />
-            Save Theme Settings
+          <Button onClick={handleSaveChanges} disabled={isSaving}>
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Paintbrush className="h-4 w-4 mr-2" />
+                Save Theme Settings
+              </>
+            )}
           </Button>
         </div>
       </CardContent>

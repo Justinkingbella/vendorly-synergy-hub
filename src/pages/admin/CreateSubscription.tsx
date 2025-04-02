@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,46 +8,77 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Check, Plus, X } from 'lucide-react';
+import { Check, Plus, X, Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { supabase } from '@/integrations/supabase/client';
 
-// Mock subscription data for edit mode
-const mockSubscriptionsById = {
-  1: {
-    name: 'Basic Plan',
-    price: '199',
-    description: 'Perfect for small vendors getting started',
-    popular: false,
-    features: ['Reduced commission rates (8.5%)', 'Up to 20 products', 'Basic analytics'],
-    notIncluded: ['Priority support', 'Advanced analytics', 'Featured product placement']
-  },
-  2: {
-    name: 'Premium Plan',
-    price: '499',
-    description: 'Best value for growing businesses',
-    popular: true,
-    features: ['Low commission rates (5%)', 'Unlimited products', 'Priority support', 'Advanced analytics'],
-    notIncluded: ['Featured product placement']
-  }
-};
+// Define subscription plan interface
+interface SubscriptionPlan {
+  id?: string;
+  name: string;
+  price: string;
+  description: string;
+  popular: boolean;
+  features: string[];
+  notIncluded: string[];
+}
 
 const CreateSubscription = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = !!id;
   
-  const [plan, setPlan] = useState(
-    isEditMode && mockSubscriptionsById[Number(id)] ?
-    mockSubscriptionsById[Number(id)] :
-    {
-      name: '',
-      price: '',
-      description: '',
-      popular: false,
-      features: [''],
-      notIncluded: ['']
-    }
-  );
+  const [plan, setPlan] = useState<SubscriptionPlan>({
+    name: '',
+    price: '',
+    description: '',
+    popular: false,
+    features: [''],
+    notIncluded: ['']
+  });
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const fetchSubscriptionPlan = async () => {
+      if (!isEditMode) return;
+      
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('subscription_plans')
+          .select('*')
+          .eq('id', id)
+          .single();
+          
+        if (error) throw error;
+        
+        if (data) {
+          setPlan({
+            id: data.id,
+            name: data.name,
+            price: data.price.toString(),
+            description: data.description,
+            popular: data.popular,
+            features: data.features || [''],
+            notIncluded: data.not_included || [''],
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching subscription plan:', err);
+        toast({
+          title: 'Error',
+          description: 'Failed to load subscription plan. Please try again.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSubscriptionPlan();
+  }, [id, isEditMode]);
 
   const handleFeatureAdd = () => {
     setPlan({
@@ -99,19 +130,74 @@ const CreateSubscription = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically make an API call to save the plan
-    console.log('Submitting plan:', plan);
     
-    toast({
-      title: isEditMode ? "Subscription Plan Updated" : "Subscription Plan Created",
-      description: `The ${plan.name} plan has been ${isEditMode ? 'updated' : 'created'} successfully.`,
-    });
-    
-    // Navigate back to subscriptions page
-    navigate('/admin/subscriptions');
+    try {
+      setIsSaving(true);
+      
+      // Filter out empty features and notIncluded items
+      const filteredFeatures = plan.features.filter(f => f.trim() !== '');
+      const filteredNotIncluded = plan.notIncluded.filter(n => n.trim() !== '');
+      
+      // Prepare data for Supabase
+      const subscriptionData = {
+        name: plan.name,
+        price: parseFloat(plan.price) || 0,
+        description: plan.description,
+        popular: plan.popular,
+        features: filteredFeatures,
+        not_included: filteredNotIncluded,
+      };
+      
+      let result;
+      
+      if (isEditMode && plan.id) {
+        // Update existing plan
+        result = await supabase
+          .from('subscription_plans')
+          .update(subscriptionData)
+          .eq('id', plan.id);
+      } else {
+        // Create new plan
+        result = await supabase
+          .from('subscription_plans')
+          .insert(subscriptionData);
+      }
+      
+      if (result.error) throw result.error;
+      
+      toast({
+        title: isEditMode ? "Subscription Plan Updated" : "Subscription Plan Created",
+        description: `The ${plan.name} plan has been ${isEditMode ? 'updated' : 'created'} successfully.`,
+      });
+      
+      // Navigate back to subscriptions page
+      navigate('/admin/subscriptions');
+    } catch (err) {
+      console.error('Error saving subscription plan:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to save subscription plan. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="p-6 flex justify-center items-center h-[calc(100vh-4rem)]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p>Loading subscription plan...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -238,10 +324,14 @@ const CreateSubscription = () => {
                 type="button" 
                 variant="outline" 
                 onClick={() => navigate('/admin/subscriptions')}
+                disabled={isSaving}
               >
                 Cancel
               </Button>
-              <Button type="submit">{isEditMode ? 'Update' : 'Create'} Subscription Plan</Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isEditMode ? 'Update' : 'Create'} Subscription Plan
+              </Button>
             </CardFooter>
           </Card>
         </form>

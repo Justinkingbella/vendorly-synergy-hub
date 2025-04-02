@@ -1,27 +1,106 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShoppingBag, Package, Heart, UserCircle, CheckCircle } from 'lucide-react';
+import { ShoppingBag, Package, Heart, UserCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import CustomerLayout from '@/components/layout/CustomerLayout';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+
+interface Order {
+  id: string;
+  date: string;
+  status: string;
+  items: number;
+  total: number;
+}
+
+interface WishlistItem {
+  id: string;
+  name: string;
+  price: number;
+  inStock: boolean;
+}
 
 const CustomerDashboard = () => {
-  // Mock recent orders
-  const recentOrders = [
-    { id: '38927', date: '2023-11-15', status: 'Delivered', items: 3, total: 159.99 },
-    { id: '38765', date: '2023-11-05', status: 'Shipped', items: 1, total: 79.99 },
-    { id: '38611', date: '2023-10-25', status: 'Processing', items: 2, total: 124.50 },
-  ];
+  const [user, setUser] = useState<any>(null);
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock wishlist items
-  const wishlistItems = [
-    { id: 1, name: 'Wireless Noise-Cancelling Headphones', price: 249.99, inStock: true },
-    { id: 2, name: 'Smartphone Gimbal Stabilizer', price: 119.99, inStock: true },
-    { id: 3, name: '4K Ultra HD Smart TV - 55"', price: 599.99, inStock: false },
-  ];
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Get current session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          // If no session, redirect to login
+          window.location.href = '/auth';
+          return;
+        }
+        
+        // Fetch user data
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+          
+        if (userError) throw userError;
+        
+        setUser(userData);
+        
+        // In a real app, we would fetch real orders and wishlist data
+        // For this implementation, we'll still use mock data but would make real queries
+        // to 'orders' and 'wishlist' tables
+        
+        // Mock recent orders - in production this would be real data
+        setRecentOrders([
+          { id: '38927', date: '2023-11-15', status: 'Delivered', items: 3, total: 159.99 },
+          { id: '38765', date: '2023-11-05', status: 'Shipped', items: 1, total: 79.99 },
+          { id: '38611', date: '2023-10-25', status: 'Processing', items: 2, total: 124.50 },
+        ]);
+        
+        // Mock wishlist items - in production this would be real data
+        setWishlistItems([
+          { id: '1', name: 'Wireless Noise-Cancelling Headphones', price: 249.99, inStock: true },
+          { id: '2', name: 'Smartphone Gimbal Stabilizer', price: 119.99, inStock: true },
+          { id: '3', name: '4K Ultra HD Smart TV - 55"', price: 599.99, inStock: false },
+        ]);
+        
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+        toast({
+          title: 'Error',
+          description: 'Failed to load dashboard data. Please try again.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <CustomerLayout>
+        <div className="p-6 flex justify-center items-center h-[calc(100vh-4rem)]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p>Loading your dashboard...</p>
+          </div>
+        </div>
+      </CustomerLayout>
+    );
+  }
 
   return (
     <CustomerLayout>
@@ -35,8 +114,10 @@ const CustomerDashboard = () => {
                 <div className="p-3 bg-primary/10 rounded-full mb-4">
                   <UserCircle className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-lg font-medium">Welcome back, Sarah!</h3>
-                <p className="text-sm text-muted-foreground mt-1">Member since Jan 2023</p>
+                <h3 className="text-lg font-medium">Welcome back, {user?.name || 'Customer'}!</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Member since {new Date(user?.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </p>
                 <div className="flex gap-2 mt-4">
                   <Button variant="outline" size="sm" asChild>
                     <Link to="/customer/settings">Edit Profile</Link>
@@ -59,7 +140,7 @@ const CustomerDashboard = () => {
                   <h3 className="text-lg font-medium">My Orders</h3>
                 </div>
                 <div className="flex-1">
-                  <p className="text-3xl font-bold">7</p>
+                  <p className="text-3xl font-bold">{recentOrders.length}</p>
                   <p className="text-sm text-muted-foreground">total orders placed</p>
                 </div>
                 <Button variant="ghost" className="mt-4 w-full justify-start" asChild>
