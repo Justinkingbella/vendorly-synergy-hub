@@ -1,185 +1,133 @@
-
+// Import the needed components and hooks
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useRouter } from 'next/router';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Plus, Trash } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { subscriptionPlansTable } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/layout/AdminLayout';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { toast } from '@/hooks/use-toast';
-import { Check, Plus, X, Loader2 } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { 
-  subscriptionPlansTable, 
-  type SubscriptionPlan,
-  type SubscriptionPlanInsert
-} from '@/integrations/supabase/client';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
-interface SubscriptionPlanState {
-  id?: string;
-  name: string;
-  price: string;
-  description: string;
-  popular: boolean;
-  features: string[];
-  notIncluded: string[];
-}
+// Main component
+export default function CreateSubscription() {
+  const router = useRouter();
+  const { subscriptionId } = router.query;
+  const { toast } = useToast();
 
-const CreateSubscription = () => {
-  const navigate = useNavigate();
-  const { id } = useParams();
-  const isEditMode = !!id;
-  
-  const [plan, setPlan] = useState<SubscriptionPlanState>({
-    name: '',
-    price: '',
-    description: '',
-    popular: false,
-    features: [''],
-    notIncluded: ['']
-  });
-  
+  // State declarations
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState(0);
+  const [description, setDescription] = useState('');
+  const [isPopular, setIsPopular] = useState(false);
+  const [features, setFeatures] = useState<string[]>(['']);
+  const [notIncluded, setNotIncluded] = useState<string[]>(['']);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    const fetchSubscriptionPlan = async () => {
-      if (!isEditMode) return;
-      
-      try {
-        setIsLoading(true);
-        const { data, error } = await subscriptionPlansTable()
-          .select('*')
-          .eq('id', id as string)
-          .single();
+    // Function to fetch subscription data if editing
+    const fetchSubscription = async () => {
+      if (subscriptionId) {
+        try {
+          setIsLoading(true);
+          const { data, error } = await subscriptionPlansTable()
+            .select('*')
+            .eq('id', subscriptionId)
+            .single();
+            
+          if (error) {
+            console.error('Error fetching subscription:', error);
+            toast({
+              title: 'Error',
+              description: 'Failed to fetch subscription details',
+              variant: 'destructive',
+            });
+            return;
+          }
           
-        if (error) {
-          console.error('Error fetching subscription plan:', error);
-          toast({
-            title: 'Error',
-            description: 'Failed to load subscription plan. Please try again.',
-            variant: 'destructive',
-          });
-          return;
+          // Type guard to ensure data has the expected properties
+          if (data && typeof data === 'object' && 
+              'id' in data && 
+              'name' in data && 
+              'price' in data && 
+              'description' in data && 
+              'popular' in data && 
+              'features' in data && 
+              'not_included' in data) {
+            
+            // Set subscription data
+            setName(data.name as string);
+            setPrice(Number(data.price));
+            setDescription(data.description as string || '');
+            setIsPopular(Boolean(data.popular));
+            
+            // Handle arrays from database
+            if (Array.isArray(data.features)) {
+              setFeatures(data.features);
+            }
+            
+            if (Array.isArray(data.not_included)) {
+              setNotIncluded(data.not_included);
+            }
+          }
+        } catch (err) {
+          console.error('Failed to fetch subscription:', err);
+        } finally {
+          setIsLoading(false);
         }
-        
-        if (data) {
-          setPlan({
-            id: data.id,
-            name: data.name,
-            price: data.price.toString(),
-            description: data.description || '',
-            popular: data.popular || false,
-            features: data.features || [''],
-            notIncluded: data.not_included || [''],
-          });
-        }
-      } catch (err) {
-        console.error('Error fetching subscription plan:', err);
-        toast({
-          title: 'Error',
-          description: 'Failed to load subscription plan. Please try again.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
       }
     };
 
-    fetchSubscriptionPlan();
-  }, [id, isEditMode]);
+    fetchSubscription();
+  }, [subscriptionId]);
 
-  const handleFeatureAdd = () => {
-    setPlan({
-      ...plan,
-      features: [...plan.features, '']
-    });
-  };
-
-  const handleFeatureRemove = (index: number) => {
-    const updatedFeatures = [...plan.features];
-    updatedFeatures.splice(index, 1);
-    setPlan({
-      ...plan,
-      features: updatedFeatures
-    });
-  };
-
-  const handleFeatureChange = (index: number, value: string) => {
-    const updatedFeatures = [...plan.features];
-    updatedFeatures[index] = value;
-    setPlan({
-      ...plan,
-      features: updatedFeatures
-    });
-  };
-
-  const handleNotIncludedAdd = () => {
-    setPlan({
-      ...plan,
-      notIncluded: [...plan.notIncluded, '']
-    });
-  };
-
-  const handleNotIncludedRemove = (index: number) => {
-    const updatedNotIncluded = [...plan.notIncluded];
-    updatedNotIncluded.splice(index, 1);
-    setPlan({
-      ...plan,
-      notIncluded: updatedNotIncluded
-    });
-  };
-
-  const handleNotIncludedChange = (index: number, value: string) => {
-    const updatedNotIncluded = [...plan.notIncluded];
-    updatedNotIncluded[index] = value;
-    setPlan({
-      ...plan,
-      notIncluded: updatedNotIncluded
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  // Function to handle saving the subscription plan
+  const handleSave = async () => {
     try {
       setIsSaving(true);
-      
-      const filteredFeatures = plan.features.filter(f => f.trim() !== '');
-      const filteredNotIncluded = plan.notIncluded.filter(n => n.trim() !== '');
-      
-      const subscriptionData: SubscriptionPlanInsert = {
-        name: plan.name,
-        price: parseFloat(plan.price) || 0,
-        description: plan.description,
-        popular: plan.popular,
-        features: filteredFeatures,
-        not_included: filteredNotIncluded,
+
+      const subscriptionData = {
+        name,
+        price,
+        description,
+        popular: isPopular,
+        features,
+        not_included: notIncluded,
       };
-      
-      let result;
-      
-      if (isEditMode && plan.id) {
-        result = await subscriptionPlansTable()
+
+      if (subscriptionId) {
+        // Update existing subscription
+        await subscriptionPlansTable()
           .update(subscriptionData)
-          .eq('id', plan.id);
+          .eq('id', subscriptionId);
+          
+        toast({
+          title: 'Success',
+          description: 'Subscription plan updated successfully!',
+        });
       } else {
-        result = await subscriptionPlansTable()
-          .insert(subscriptionData)
-          .select();
+        // Create new subscription
+        await subscriptionPlansTable().insert({
+          id: Math.random().toString(36).substring(2, 15), // Generate a random ID
+          ...subscriptionData,
+        });
+        
+        toast({
+          title: 'Success',
+          description: 'Subscription plan created successfully!',
+        });
       }
-      
-      if (result.error) throw result.error;
-      
-      toast({
-        title: isEditMode ? "Subscription Plan Updated" : "Subscription Plan Created",
-        description: `The ${plan.name} plan has been ${isEditMode ? 'updated' : 'created'} successfully.`,
-      });
-      
-      navigate('/admin/subscriptions');
-    } catch (err) {
-      console.error('Error saving subscription plan:', err);
+
+      router.push('/admin/subscriptions');
+    } catch (error) {
+      console.error('Error saving subscription:', error);
       toast({
         title: 'Error',
         description: 'Failed to save subscription plan. Please try again.',
@@ -190,14 +138,96 @@ const CreateSubscription = () => {
     }
   };
 
+  // Function to add a new feature input
+  const addFeature = () => {
+    setFeatures([...features, '']);
+  };
+
+  // Function to add a new "not included" input
+  const addNotIncluded = () => {
+    setNotIncluded([...notIncluded, '']);
+  };
+
+  // Function to update a feature at a specific index
+  const updateFeature = (index: number, value: string) => {
+    const newFeatures = [...features];
+    newFeatures[index] = value;
+    setFeatures(newFeatures);
+  };
+
+  // Function to update a "not included" item at a specific index
+  const updateNotIncluded = (index: number, value: string) => {
+    const newNotIncluded = [...notIncluded];
+    newNotIncluded[index] = value;
+    setNotIncluded(newNotIncluded);
+  };
+
+  // Function to remove a feature at a specific index
+  const removeFeature = (index: number) => {
+    const newFeatures = [...features];
+    newFeatures.splice(index, 1);
+    setFeatures(newFeatures);
+  };
+
+  // Function to remove a "not included" item at a specific index
+  const removeNotIncluded = (index: number) => {
+    const newNotIncluded = [...notIncluded];
+    newNotIncluded.splice(index, 1);
+    setNotIncluded(newNotIncluded);
+  };
+
   if (isLoading) {
     return (
       <AdminLayout>
-        <div className="p-6 flex justify-center items-center h-[calc(100vh-4rem)]">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p>Loading subscription plan...</p>
+        <div className="p-6">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold">
+              <Skeleton className="h-8 w-32" />
+            </h1>
+            <p className="text-muted-foreground">
+              <Skeleton className="h-4 w-64" />
+            </p>
           </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <Skeleton className="h-6 w-48" />
+              </CardTitle>
+              <CardDescription>
+                <Skeleton className="h-4 w-64" />
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="name">
+                    <Skeleton className="h-4 w-24" />
+                  </Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="price">
+                    <Skeleton className="h-4 w-24" />
+                  </Label>
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">
+                  <Skeleton className="h-4 w-24" />
+                </Label>
+                <Skeleton className="h-24 w-full" />
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <Skeleton className="h-8 w-32" />
+                </div>
+                <div>
+                  <Skeleton className="h-8 w-32" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </AdminLayout>
     );
@@ -206,142 +236,123 @@ const CreateSubscription = () => {
   return (
     <AdminLayout>
       <div className="p-6">
-        <h1 className="text-3xl font-bold mb-6">{isEditMode ? 'Edit' : 'Create'} Subscription Plan</h1>
-        
-        <form onSubmit={handleSubmit}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Plan Details</CardTitle>
-              <CardDescription>{isEditMode ? 'Edit' : 'Create a new'} subscription plan for vendors</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Plan Name</Label>
-                  <Input 
-                    id="name" 
-                    value={plan.name} 
-                    onChange={(e) => setPlan({...plan, name: e.target.value})}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price (N$)</Label>
-                  <Input 
-                    id="price" 
-                    type="number" 
-                    value={plan.price} 
-                    onChange={(e) => setPlan({...plan, price: e.target.value})}
-                    required
-                  />
-                </div>
-              </div>
-              
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">{subscriptionId ? 'Edit Subscription Plan' : 'Create Subscription Plan'}</h1>
+          <p className="text-muted-foreground">Manage subscription plans for your vendors</p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{subscriptionId ? 'Edit Subscription Plan' : 'Create New Subscription Plan'}</CardTitle>
+            <CardDescription>
+              {subscriptionId ? 'Modify the details of an existing subscription plan' : 'Define a new subscription plan for your vendors'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea 
-                  id="description" 
-                  value={plan.description} 
-                  onChange={(e) => setPlan({...plan, description: e.target.value})}
-                  required
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                 />
               </div>
-              
-              <div className="flex items-center space-x-2">
-                <Switch 
-                  id="popular" 
-                  checked={plan.popular} 
-                  onCheckedChange={(checked) => setPlan({...plan, popular: checked})}
-                />
-                <Label htmlFor="popular">Mark as Popular</Label>
-              </div>
-              
               <div className="space-y-2">
-                <Label>Features Included</Label>
-                {plan.features.map((feature, index) => (
-                  <div key={`feature-${index}`} className="flex items-center space-x-2">
-                    <Check className="h-5 w-5 text-green-500 shrink-0" />
-                    <Input 
-                      value={feature} 
-                      onChange={(e) => handleFeatureChange(index, e.target.value)}
-                      placeholder="e.g., Reduced commission rates (8.5%)"
+                <Label htmlFor="price">Price</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  value={price.toString()}
+                  onChange={(e) => setPrice(Number(e.target.value))}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+
+            <Separator className="my-4" />
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="isPopular">Popular Plan</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Highlight this plan as a popular choice
+                  </p>
+                </div>
+                <Switch
+                  id="isPopular"
+                  checked={isPopular}
+                  onCheckedChange={setIsPopular}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Features</Label>
+                {features.map((feature, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <Input
+                      type="text"
+                      value={feature}
+                      onChange={(e) => updateFeature(index, e.target.value)}
                     />
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => handleFeatureRemove(index)}
-                      disabled={plan.features.length === 1}
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => removeFeature(index)}
                     >
-                      <X className="h-4 w-4" />
+                      <Trash className="h-4 w-4" />
                     </Button>
                   </div>
                 ))}
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleFeatureAdd}
-                  className="mt-2"
-                >
+                <Button variant="secondary" size="sm" onClick={addFeature}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Feature
                 </Button>
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Not Included</Label>
-                {plan.notIncluded.map((feature, index) => (
-                  <div key={`not-included-${index}`} className="flex items-center space-x-2">
-                    <X className="h-5 w-5 text-red-500 shrink-0" />
-                    <Input 
-                      value={feature} 
-                      onChange={(e) => handleNotIncludedChange(index, e.target.value)}
-                      placeholder="e.g., Priority support"
+                {notIncluded.map((item, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <Input
+                      type="text"
+                      value={item}
+                      onChange={(e) => updateNotIncluded(index, e.target.value)}
                     />
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => handleNotIncludedRemove(index)}
-                      disabled={plan.notIncluded.length === 1}
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => removeNotIncluded(index)}
                     >
-                      <X className="h-4 w-4" />
+                      <Trash className="h-4 w-4" />
                     </Button>
                   </div>
                 ))}
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleNotIncludedAdd}
-                  className="mt-2"
-                >
+                <Button variant="secondary" size="sm" onClick={addNotIncluded}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Not Included Feature
+                  Add Item
                 </Button>
               </div>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => navigate('/admin/subscriptions')}
-                disabled={isSaving}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isEditMode ? 'Update' : 'Create'} Subscription Plan
-              </Button>
-            </CardFooter>
-          </Card>
-        </form>
+            </div>
+
+            <Button
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? 'Saving...' : 'Save Subscription Plan'}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );
-};
-
-export default CreateSubscription;
+}

@@ -48,7 +48,8 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
             // PGRST116 means no rows returned, which is fine for a new app
             console.error('Error fetching app settings:', error);
           }
-          // Fall back to defaults
+          // If there's an error, create default settings
+          await createDefaultSettings();
           return;
         }
         
@@ -57,30 +58,49 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
           if ('theme' in data && 'notifications' in data && 'font_size' in data) {
             setSettings({
               theme: data.theme as 'light' | 'dark' | 'system',
-              notifications: data.notifications || false,
+              notifications: Boolean(data.notifications),
               fontSize: data.font_size as 'small' | 'medium' | 'large',
             });
+          } else {
+            console.error('App settings data missing expected properties:', data);
+            await createDefaultSettings();
           }
         } else {
           // If no settings found, create default settings
-          const appData: InsertAppSetting = {
-            theme: defaultSettings.theme,
-            notifications: defaultSettings.notifications,
-            font_size: defaultSettings.fontSize,
-          };
-          
-          await appSettingsTable()
-            .insert(appData);
+          await createDefaultSettings();
         }
       } catch (err) {
         console.error('Failed to fetch app settings:', err);
         // Fall back to localStorage if Supabase fails
         const savedSettings = localStorage.getItem('app-settings');
         if (savedSettings) {
-          setSettings(JSON.parse(savedSettings));
+          try {
+            setSettings(JSON.parse(savedSettings));
+          } catch (parseErr) {
+            console.error('Failed to parse saved settings:', parseErr);
+          }
         }
       } finally {
         setIsLoading(false);
+      }
+    };
+
+    const createDefaultSettings = async () => {
+      try {
+        const appData: InsertAppSetting = {
+          theme: defaultSettings.theme,
+          notifications: defaultSettings.notifications,
+          font_size: defaultSettings.fontSize,
+        };
+        
+        const { error } = await appSettingsTable()
+          .insert(appData);
+          
+        if (error) {
+          console.error('Error creating default app settings:', error);
+        }
+      } catch (err) {
+        console.error('Failed to create default settings:', err);
       }
     };
 
@@ -106,6 +126,7 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
       
+      // Check if data exists and has an id property
       if (data && 'id' in data) {
         // Update existing settings
         const updateData: InsertAppSetting = {
@@ -115,16 +136,34 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
           updated_at: new Date().toISOString(),
         };
         
-        await appSettingsTable()
+        const { error: updateError } = await appSettingsTable()
           .update(updateData)
           .eq('id', data.id);
+          
+        if (updateError) {
+          throw updateError;
+        }
+      } else {
+        // If no existing record, create a new one
+        const appData: InsertAppSetting = {
+          theme: updatedSettings.theme,
+          notifications: updatedSettings.notifications,
+          font_size: updatedSettings.fontSize,
+        };
+        
+        const { error: insertError } = await appSettingsTable()
+          .insert(appData);
+          
+        if (insertError) {
+          throw insertError;
+        }
       }
     } catch (err) {
       console.error('Failed to update app settings:', err);
       toast({
-        title: 'Error',
-        description: 'Failed to save settings. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to save settings. Please try again.",
+        variant: "destructive",
       });
     }
   };

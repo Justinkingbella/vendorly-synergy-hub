@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -22,7 +23,6 @@ import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { Paintbrush, Moon, Sun, Monitor, Loader2 } from 'lucide-react';
 import { 
   storeThemeSettingsTable,
-  type StoreThemeSetting,
   type StoreThemeSettingsInsert
 } from '@/integrations/supabase/client';
 
@@ -50,44 +50,64 @@ const AppEditorTheme = () => {
           return;
         }
         
-        if (data) {
-          setStoreThemeId(data.id);
-          // If there are settings in the database, update the context
-          updateThemeSettings({
-            mode: data.mode,
-            primaryColor: data.primary_color,
-            secondaryColor: data.secondary_color,
-            accentColor: data.accent_color,
-            fontFamily: data.font_family,
-            borderRadius: data.border_radius,
-            customCss: data.custom_css || '',
-          });
+        if (data && typeof data === 'object') {
+          // Type guard to ensure data has all the expected properties
+          if ('id' in data && 
+              'mode' in data && 
+              'primary_color' in data && 
+              'secondary_color' in data && 
+              'accent_color' in data && 
+              'font_family' in data && 
+              'border_radius' in data) {
+            
+            setStoreThemeId(data.id as string);
+            // If there are settings in the database, update the context
+            updateThemeSettings({
+              mode: data.mode as 'light' | 'dark' | 'system',
+              primaryColor: data.primary_color as string,
+              secondaryColor: data.secondary_color as string,
+              accentColor: data.accent_color as string,
+              fontFamily: data.font_family as string,
+              borderRadius: data.border_radius as string,
+              customCss: (data.custom_css as string) || '',
+            });
+          } else {
+            console.error('Theme settings data missing expected properties:', data);
+          }
         } else {
           // If no settings exist, create a default record
-          const themeData: StoreThemeSettingsInsert = {
-            mode: themeSettings.mode,
-            primary_color: themeSettings.primaryColor,
-            secondary_color: themeSettings.secondaryColor,
-            accent_color: themeSettings.accentColor,
-            font_family: themeSettings.fontFamily,
-            border_radius: themeSettings.borderRadius,
-            custom_css: themeSettings.customCss,
-          };
-          
-          const { data: newData, error: insertError } = await storeThemeSettingsTable()
-            .insert(themeData)
-            .select();
-            
-          if (insertError) {
-            console.error('Error creating default theme settings:', insertError);
-          } else if (newData && newData[0]) {
-            setStoreThemeId(newData[0].id);
-          }
+          await createDefaultThemeSettings();
         }
       } catch (err) {
         console.error('Failed to fetch theme settings:', err);
       } finally {
         setIsLoading(false);
+      }
+    };
+
+    const createDefaultThemeSettings = async () => {
+      try {
+        const themeData: StoreThemeSettingsInsert = {
+          mode: themeSettings.mode,
+          primary_color: themeSettings.primaryColor,
+          secondary_color: themeSettings.secondaryColor,
+          accent_color: themeSettings.accentColor,
+          font_family: themeSettings.fontFamily,
+          border_radius: themeSettings.borderRadius,
+          custom_css: themeSettings.customCss,
+        };
+        
+        const { data, error } = await storeThemeSettingsTable()
+          .insert(themeData)
+          .select();
+          
+        if (error) {
+          console.error('Error creating default theme settings:', error);
+        } else if (data && Array.isArray(data) && data.length > 0 && 'id' in data[0]) {
+          setStoreThemeId(data[0].id as string);
+        }
+      } catch (err) {
+        console.error('Failed to create default theme settings:', err);
       }
     };
 
@@ -135,8 +155,8 @@ const AppEditorTheme = () => {
           .select();
           
         if (error) throw error;
-        if (data && data[0]) {
-          setStoreThemeId(data[0].id);
+        if (data && Array.isArray(data) && data.length > 0 && 'id' in data[0]) {
+          setStoreThemeId(data[0].id as string);
         }
       }
       

@@ -72,42 +72,67 @@ export interface SubscriptionPlanInsert {
   updated_at?: string;
 }
 
-// Type-safe wrapper functions for standard tables
-export const appSettingsTable = () => supabase.from<Tables<'app_settings'>>('app_settings');
+// Type-safe standard app_settings table functions 
+export const appSettingsTable = () => {
+  const query = supabase.from('app_settings');
+  
+  return {
+    select: (columns = '*') => query.select(columns),
+    insert: (values: InsertTables<'app_settings'>) => query.insert(values),
+    update: (values: UpdateTables<'app_settings'>) => query.update(values),
+    delete: () => query.delete(),
+    eq: (column: string, value: any) => query.eq(column, value),
+    single: () => query.single(),
+    order: (column: string, options?: { ascending?: boolean }) => query.order(column, options),
+    limit: (count: number) => query.limit(count),
+  };
+};
 export type AppSetting = Tables<'app_settings'>;
 export type InsertAppSetting = InsertTables<'app_settings'>;
 export type UpdateAppSetting = UpdateTables<'app_settings'>;
 
-// Custom wrapper for subscription_plans table with proper typing
+// Custom wrapper for subscription_plans table
 export const subscriptionPlansTable = () => {
-  const queryBuilder = supabase.from('subscription_plans');
+  const table = 'subscription_plans';
   
   return {
-    select: (columns = '*') => queryBuilder.select(columns),
-    insert: (values: SubscriptionPlanInsert | SubscriptionPlanInsert[]) => queryBuilder.insert(values),
-    update: (values: Partial<SubscriptionPlanInsert>) => queryBuilder.update(values),
-    delete: () => queryBuilder.delete(),
-    eq: (column: string, value: any) => queryBuilder.eq(column, value),
-    single: () => queryBuilder.single(),
-    order: (column: string, options?: { ascending?: boolean }) => queryBuilder.order(column, options),
-    limit: (count: number) => queryBuilder.limit(count),
+    select: (columns = '*') => supabase.from(table).select(columns),
+    insert: (values: SubscriptionPlanInsert | SubscriptionPlanInsert[]) => {
+      if (Array.isArray(values)) {
+        return supabase.from(table).insert(values);
+      }
+      return supabase.from(table).insert(values);
+    },
+    update: (values: Partial<SubscriptionPlanInsert>) => supabase.from(table).update(values),
+    delete: () => supabase.from(table).delete(),
+    eq: (column: string, value: any) => supabase.from(table).eq(column, value),
+    single: () => supabase.from(table).single(),
+    order: (column: string, options?: { ascending?: boolean }) => 
+      supabase.from(table).order(column, options),
+    limit: (count: number) => supabase.from(table).limit(count),
   };
 };
 export type SubscriptionPlan = SubscriptionPlanRow;
 
-// Custom wrapper for store_theme_settings table with proper typing
+// Custom wrapper for store_theme_settings table
 export const storeThemeSettingsTable = () => {
-  const queryBuilder = supabase.from('store_theme_settings');
+  const table = 'store_theme_settings';
   
   return {
-    select: (columns = '*') => queryBuilder.select(columns),
-    insert: (values: StoreThemeSettingsInsert | StoreThemeSettingsInsert[]) => queryBuilder.insert(values),
-    update: (values: Partial<StoreThemeSettingsInsert>) => queryBuilder.update(values),
-    delete: () => queryBuilder.delete(),
-    eq: (column: string, value: any) => queryBuilder.eq(column, value),
-    single: () => queryBuilder.single(),
-    order: (column: string, options?: { ascending?: boolean }) => queryBuilder.order(column, options),
-    limit: (count: number) => queryBuilder.limit(count),
+    select: (columns = '*') => supabase.from(table).select(columns),
+    insert: (values: StoreThemeSettingsInsert | StoreThemeSettingsInsert[]) => {
+      if (Array.isArray(values)) {
+        return supabase.from(table).insert(values);
+      }
+      return supabase.from(table).insert(values);
+    },
+    update: (values: Partial<StoreThemeSettingsInsert>) => supabase.from(table).update(values),
+    delete: () => supabase.from(table).delete(),
+    eq: (column: string, value: any) => supabase.from(table).eq(column, value),
+    single: () => supabase.from(table).single(),
+    order: (column: string, options?: { ascending?: boolean }) => 
+      supabase.from(table).order(column, options),
+    limit: (count: number) => supabase.from(table).limit(count),
   };
 };
 export type StoreThemeSetting = StoreThemeSettingsRow;
