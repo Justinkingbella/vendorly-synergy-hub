@@ -10,11 +10,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Trash } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { subscriptionPlansTable, type SubscriptionPlanRow, type SubscriptionPlanInsert } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+
+// Define the types for subscription plan
+interface SubscriptionPlan {
+  id?: string;
+  name: string;
+  price: number;
+  description: string | null;
+  popular: boolean;
+  features: string[];
+  not_included: string[];
+}
 
 // Main component
 export default function CreateSubscription() {
@@ -38,7 +48,8 @@ export default function CreateSubscription() {
       if (subscriptionId) {
         try {
           setIsLoading(true);
-          const { data, error } = await subscriptionPlansTable()
+          const { data, error } = await supabase
+            .from('subscription_plans')
             .select('*')
             .eq('id', subscriptionId)
             .single();
@@ -53,24 +64,20 @@ export default function CreateSubscription() {
             return;
           }
           
-          // Type assertion to handle the result correctly
-          const subscriptionData = data as unknown as SubscriptionPlanRow;
-          
-          // Safely handle potentially null data
-          if (subscriptionData) {
+          if (data) {
             // Set subscription data with null checks
-            setName(subscriptionData.name || '');
-            setPrice(typeof subscriptionData.price === 'number' ? subscriptionData.price : 0);
-            setDescription(subscriptionData.description || '');
-            setIsPopular(Boolean(subscriptionData.popular));
+            setName(data.name || '');
+            setPrice(typeof data.price === 'number' ? data.price : 0);
+            setDescription(data.description || '');
+            setIsPopular(Boolean(data.popular));
             
             // Handle arrays from database with null checks
-            if (subscriptionData.features && Array.isArray(subscriptionData.features)) {
-              setFeatures(subscriptionData.features.length > 0 ? subscriptionData.features : ['']);
+            if (data.features && Array.isArray(data.features)) {
+              setFeatures(data.features.length > 0 ? data.features : ['']);
             }
             
-            if (subscriptionData.not_included && Array.isArray(subscriptionData.not_included)) {
-              setNotIncluded(subscriptionData.not_included.length > 0 ? subscriptionData.not_included : ['']);
+            if (data.not_included && Array.isArray(data.not_included)) {
+              setNotIncluded(data.not_included.length > 0 ? data.not_included : ['']);
             }
           }
         } catch (err) {
@@ -89,7 +96,7 @@ export default function CreateSubscription() {
     try {
       setIsSaving(true);
 
-      const subscriptionData: SubscriptionPlanInsert = {
+      const subscriptionData: SubscriptionPlan = {
         name,
         price,
         description,
@@ -100,9 +107,14 @@ export default function CreateSubscription() {
 
       if (subscriptionId) {
         // Update existing subscription
-        await subscriptionPlansTable()
+        const { error } = await supabase
+          .from('subscription_plans')
           .update(subscriptionData)
           .eq('id', subscriptionId);
+          
+        if (error) {
+          throw error;
+        }
           
         toast({
           title: 'Success',
@@ -110,10 +122,13 @@ export default function CreateSubscription() {
         });
       } else {
         // Create new subscription
-        await subscriptionPlansTable().insert({
-          id: Math.random().toString(36).substring(2, 15), // Generate a random ID
-          ...subscriptionData,
-        });
+        const { error } = await supabase
+          .from('subscription_plans')
+          .insert(subscriptionData);
+          
+        if (error) {
+          throw error;
+        }
         
         toast({
           title: 'Success',
@@ -122,11 +137,11 @@ export default function CreateSubscription() {
       }
 
       navigate('/admin/subscriptions');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving subscription:', error);
       toast({
         title: 'Error',
-        description: 'Failed to save subscription plan. Please try again.',
+        description: error.message || 'Failed to save subscription plan. Please try again.',
         variant: 'destructive',
       });
     } finally {

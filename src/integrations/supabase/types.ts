@@ -120,6 +120,81 @@ export type Database = {
           },
         ]
       }
+      store_theme_settings: {
+        Row: {
+          accent_color: string
+          border_radius: string
+          created_at: string
+          custom_css: string | null
+          font_family: string
+          id: string
+          mode: string
+          primary_color: string
+          secondary_color: string
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string
+          border_radius?: string
+          created_at?: string
+          custom_css?: string | null
+          font_family?: string
+          id?: string
+          mode?: string
+          primary_color?: string
+          secondary_color?: string
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string
+          border_radius?: string
+          created_at?: string
+          custom_css?: string | null
+          font_family?: string
+          id?: string
+          mode?: string
+          primary_color?: string
+          secondary_color?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          description: string | null
+          features: Json | null
+          id: string
+          name: string
+          not_included: Json | null
+          popular: boolean | null
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          name: string
+          not_included?: Json | null
+          popular?: boolean | null
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          name?: string
+          not_included?: Json | null
+          popular?: boolean | null
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           created_at: string
