@@ -20,33 +20,19 @@ export type UpdateTables<T extends keyof Database['public']['Tables']> = Databas
 // Direct database access helper that handles untyped tables
 export const rawQuery = {
   from: (tableName: string) => {
-    return {
-      select: (columns = '*') => supabase.from(tableName).select(columns),
-      insert: (values: any, options?: any) => supabase.from(tableName).insert(values, options),
-      update: (values: any) => supabase.from(tableName).update(values),
-      delete: () => supabase.from(tableName).delete(),
-      eq: (column: string, value: any) => {
-        const query = supabase.from(tableName);
-        return query.select('*').eq(column, value);
-      },
-      single: () => {
-        const query = supabase.from(tableName);
-        return query.select('*').single();
-      },
-      order: (column: string, options?: { ascending?: boolean }) => {
-        const query = supabase.from(tableName);
-        return query.select('*').order(column, options);
-      },
-      limit: (count: number) => {
-        const query = supabase.from(tableName);
-        return query.select('*').limit(count);
-      },
-    };
+    return supabase.from(tableName as any);
   }
 };
 
-// Custom type definitions for tables not yet in types.ts
-// These will be used until the types.ts file is regenerated with the new tables
+// Type-safe standard app_settings table functions 
+export const appSettingsTable = () => {
+  return supabase.from('app_settings');
+};
+export type AppSetting = Tables<'app_settings'>;
+export type InsertAppSetting = InsertTables<'app_settings'>;
+export type UpdateAppSetting = UpdateTables<'app_settings'>;
+
+// Custom types for tables not in types.ts
 
 // Interface for store_theme_settings table
 export interface StoreThemeSettingsRow {
@@ -100,58 +86,14 @@ export interface SubscriptionPlanInsert {
   updated_at?: string;
 }
 
-// Type-safe standard app_settings table functions 
-export const appSettingsTable = () => {
-  const query = supabase.from('app_settings');
-  
-  return {
-    select: (columns = '*') => query.select(columns),
-    insert: (values: InsertTables<'app_settings'>) => query.insert(values),
-    update: (values: UpdateTables<'app_settings'>) => query.update(values),
-    delete: () => query.delete(),
-    eq: (column: string, value: any) => query.eq(column, value),
-    single: () => query.select('*').single(),
-    order: (column: string, options?: { ascending?: boolean }) => query.select('*').order(column, options),
-    limit: (count: number) => query.select('*').limit(count),
-  };
-};
-export type AppSetting = Tables<'app_settings'>;
-export type InsertAppSetting = InsertTables<'app_settings'>;
-export type UpdateAppSetting = UpdateTables<'app_settings'>;
-
 // Custom wrapper for subscription_plans table
 export const subscriptionPlansTable = () => {
-  return {
-    select: (columns = '*') => rawQuery.from('subscription_plans').select(columns),
-    insert: (values: SubscriptionPlanInsert | SubscriptionPlanInsert[]) => {
-      return rawQuery.from('subscription_plans').insert(values);
-    },
-    update: (values: Partial<SubscriptionPlanInsert>) => rawQuery.from('subscription_plans').update(values),
-    delete: () => rawQuery.from('subscription_plans').delete(),
-    eq: (column: string, value: any) => rawQuery.from('subscription_plans').eq(column, value),
-    single: () => rawQuery.from('subscription_plans').single(),
-    order: (column: string, options?: { ascending?: boolean }) => 
-      rawQuery.from('subscription_plans').order(column, options),
-    limit: (count: number) => rawQuery.from('subscription_plans').limit(count),
-  };
+  return rawQuery.from('subscription_plans');
 };
 export type SubscriptionPlan = SubscriptionPlanRow;
 
 // Custom wrapper for store_theme_settings table
 export const storeThemeSettingsTable = () => {
-  return {
-    select: (columns = '*') => rawQuery.from('store_theme_settings').select(columns),
-    insert: (values: StoreThemeSettingsInsert | StoreThemeSettingsInsert[]) => {
-      return rawQuery.from('store_theme_settings').insert(values);
-    },
-    update: (values: Partial<StoreThemeSettingsInsert>) => rawQuery.from('store_theme_settings').update(values),
-    delete: () => rawQuery.from('store_theme_settings').delete(),
-    eq: (column: string, value: any) => rawQuery.from('store_theme_settings').eq(column, value),
-    single: () => rawQuery.from('store_theme_settings').single(),
-    order: (column: string, options?: { ascending?: boolean }) => 
-      rawQuery.from('store_theme_settings').order(column, options),
-    limit: (count: number) => rawQuery.from('store_theme_settings').limit(count),
-  };
+  return rawQuery.from('store_theme_settings');
 };
 export type StoreThemeSetting = StoreThemeSettingsRow;
-

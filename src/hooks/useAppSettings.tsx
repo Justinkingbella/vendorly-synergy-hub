@@ -54,18 +54,15 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
         }
         
         if (data) {
-          // Safely access data properties with type assertion
-          const settingsData = data as Record<string, any>;
-          
           // Type guard to ensure data has the expected properties
-          if ('theme' in settingsData && 'notifications' in settingsData && 'font_size' in settingsData) {
+          if ('theme' in data && 'notifications' in data && 'font_size' in data) {
             setSettings({
-              theme: settingsData.theme as 'light' | 'dark' | 'system',
-              notifications: Boolean(settingsData.notifications),
-              fontSize: settingsData.font_size as 'small' | 'medium' | 'large',
+              theme: data.theme as 'light' | 'dark' | 'system',
+              notifications: Boolean(data.notifications),
+              fontSize: data.font_size as 'small' | 'medium' | 'large',
             });
           } else {
-            console.error('App settings data missing expected properties:', settingsData);
+            console.error('App settings data missing expected properties:', data);
             await createDefaultSettings();
           }
         } else {
@@ -124,10 +121,8 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
       
-      // Check if data exists and safely access id property
-      const settingsData = data as Record<string, any> | null;
-      
-      if (settingsData && 'id' in settingsData) {
+      // Check if data exists and has an id property
+      if (data && 'id' in data) {
         // Update existing settings
         const updateData: InsertAppSetting = {
           theme: updatedSettings.theme,
@@ -138,7 +133,7 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
         
         const { error: updateError } = await appSettingsTable()
           .update(updateData)
-          .eq('id', settingsData.id as string);
+          .eq('id', data.id as string);
           
         if (updateError) {
           throw updateError;

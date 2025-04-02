@@ -54,21 +54,19 @@ export default function CreateSubscription() {
           
           // Safely handle potentially null data
           if (data) {
-            const subData = data as Record<string, any>;
-            
             // Set subscription data with null checks
-            setName(subData.name ? String(subData.name) : '');
-            setPrice(subData.price !== undefined ? Number(subData.price) : 0);
-            setDescription(subData.description ? String(subData.description) : '');
-            setIsPopular(subData.popular ? Boolean(subData.popular) : false);
+            setName(data.name ? String(data.name) : '');
+            setPrice(data.price !== undefined ? Number(data.price) : 0);
+            setDescription(data.description ? String(data.description) : '');
+            setIsPopular(data.popular ? Boolean(data.popular) : false);
             
             // Handle arrays from database with null checks
-            if (subData.features && Array.isArray(subData.features)) {
-              setFeatures(subData.features.length > 0 ? subData.features : ['']);
+            if (data.features && Array.isArray(data.features)) {
+              setFeatures(data.features.length > 0 ? data.features : ['']);
             }
             
-            if (subData.not_included && Array.isArray(subData.not_included)) {
-              setNotIncluded(subData.not_included.length > 0 ? subData.not_included : ['']);
+            if (data.not_included && Array.isArray(data.not_included)) {
+              setNotIncluded(data.not_included.length > 0 ? data.not_included : ['']);
             }
           }
         } catch (err) {
