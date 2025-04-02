@@ -10,13 +10,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Trash } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, SubscriptionPlanRow, subscriptionPlansTable } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Define the types for subscription plan
-interface SubscriptionPlan {
+interface SubscriptionPlanFormData {
   id?: string;
   name: string;
   price: number;
@@ -48,8 +48,7 @@ export default function CreateSubscription() {
       if (subscriptionId) {
         try {
           setIsLoading(true);
-          const { data, error } = await supabase
-            .from('subscription_plans')
+          const { data, error } = await subscriptionPlansTable()
             .select('*')
             .eq('id', subscriptionId)
             .single();
@@ -65,19 +64,20 @@ export default function CreateSubscription() {
           }
           
           if (data) {
-            // Set subscription data with null checks
-            setName(data.name || '');
-            setPrice(typeof data.price === 'number' ? data.price : 0);
-            setDescription(data.description || '');
-            setIsPopular(Boolean(data.popular));
+            // Set subscription data with type safety
+            const subscription = data as SubscriptionPlanRow;
+            setName(subscription.name || '');
+            setPrice(typeof subscription.price === 'number' ? subscription.price : 0);
+            setDescription(subscription.description || '');
+            setIsPopular(Boolean(subscription.popular));
             
             // Handle arrays from database with null checks
-            if (data.features && Array.isArray(data.features)) {
-              setFeatures(data.features.length > 0 ? data.features : ['']);
+            if (subscription.features && Array.isArray(subscription.features)) {
+              setFeatures(subscription.features.length > 0 ? subscription.features as string[] : ['']);
             }
             
-            if (data.not_included && Array.isArray(data.not_included)) {
-              setNotIncluded(data.not_included.length > 0 ? data.not_included : ['']);
+            if (subscription.not_included && Array.isArray(subscription.not_included)) {
+              setNotIncluded(subscription.not_included.length > 0 ? subscription.not_included as string[] : ['']);
             }
           }
         } catch (err) {
@@ -96,7 +96,7 @@ export default function CreateSubscription() {
     try {
       setIsSaving(true);
 
-      const subscriptionData: SubscriptionPlan = {
+      const subscriptionData: SubscriptionPlanFormData = {
         name,
         price,
         description,
@@ -107,8 +107,7 @@ export default function CreateSubscription() {
 
       if (subscriptionId) {
         // Update existing subscription
-        const { error } = await supabase
-          .from('subscription_plans')
+        const { error } = await subscriptionPlansTable()
           .update(subscriptionData)
           .eq('id', subscriptionId);
           
@@ -122,8 +121,7 @@ export default function CreateSubscription() {
         });
       } else {
         // Create new subscription
-        const { error } = await supabase
-          .from('subscription_plans')
+        const { error } = await subscriptionPlansTable()
           .insert(subscriptionData);
           
         if (error) {
