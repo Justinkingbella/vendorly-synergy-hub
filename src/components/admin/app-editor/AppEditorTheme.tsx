@@ -21,9 +21,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { Paintbrush, Moon, Sun, Monitor, Loader2 } from 'lucide-react';
 import { 
-  storeThemeSettingsTable, 
-  type StoreThemeSetting, 
-  type InsertStoreThemeSetting 
+  storeThemeSettingsTable,
+  type StoreThemeSetting,
+  type StoreThemeSettingsInsert
 } from '@/integrations/supabase/client';
 
 const AppEditorTheme = () => {
@@ -52,7 +52,7 @@ const AppEditorTheme = () => {
           setStoreThemeId(data.id);
           // If there are settings in the database, update the context
           updateThemeSettings({
-            mode: data.mode as 'light' | 'dark' | 'system',
+            mode: data.mode,
             primaryColor: data.primary_color,
             secondaryColor: data.secondary_color,
             accentColor: data.accent_color,
@@ -62,7 +62,7 @@ const AppEditorTheme = () => {
           });
         } else {
           // If no settings exist, create a default record
-          const themeData: InsertStoreThemeSetting = {
+          const themeData: StoreThemeSettingsInsert = {
             mode: themeSettings.mode,
             primary_color: themeSettings.primaryColor,
             secondary_color: themeSettings.secondaryColor,
@@ -73,7 +73,7 @@ const AppEditorTheme = () => {
           };
           
           const { data: newData, error: insertError } = await storeThemeSettingsTable()
-            .insert([themeData])
+            .insert(themeData)
             .select();
             
           if (insertError) {
@@ -108,7 +108,7 @@ const AppEditorTheme = () => {
     try {
       setIsSaving(true);
       
-      const themeData: InsertStoreThemeSetting = {
+      const themeData: StoreThemeSettingsInsert = {
         mode: themeSettings.mode,
         primary_color: themeSettings.primaryColor,
         secondary_color: themeSettings.secondaryColor,
@@ -129,7 +129,7 @@ const AppEditorTheme = () => {
       } else {
         // Create new record if ID is not available
         const { data, error } = await storeThemeSettingsTable()
-          .insert([themeData])
+          .insert(themeData)
           .select();
           
         if (error) throw error;

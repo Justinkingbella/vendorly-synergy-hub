@@ -52,7 +52,7 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
         if (data) {
           setSettings({
             theme: data.theme as 'light' | 'dark' | 'system',
-            notifications: !!data.notifications,
+            notifications: data.notifications || false,
             fontSize: data.font_size as 'small' | 'medium' | 'large',
           });
         } else {
@@ -64,7 +64,7 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
           };
           
           const { error: insertError } = await appSettingsTable()
-            .insert([appData]);
+            .insert(appData);
             
           if (insertError) {
             console.error('Error creating default app settings:', insertError);

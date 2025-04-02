@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '@/components/layout/AdminLayout';
@@ -13,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { 
   subscriptionPlansTable, 
   type SubscriptionPlan,
-  type InsertSubscriptionPlan
+  type SubscriptionPlanInsert
 } from '@/integrations/supabase/client';
 
 interface SubscriptionPlanState {
@@ -63,8 +62,8 @@ const CreateSubscription = () => {
             price: data.price.toString(),
             description: data.description || '',
             popular: data.popular || false,
-            features: data.features as string[] || [''],
-            notIncluded: data.not_included as string[] || [''],
+            features: data.features || [''],
+            notIncluded: data.not_included || [''],
           });
         }
       } catch (err) {
@@ -141,7 +140,7 @@ const CreateSubscription = () => {
       const filteredFeatures = plan.features.filter(f => f.trim() !== '');
       const filteredNotIncluded = plan.notIncluded.filter(n => n.trim() !== '');
       
-      const subscriptionData: InsertSubscriptionPlan = {
+      const subscriptionData: SubscriptionPlanInsert = {
         name: plan.name,
         price: parseFloat(plan.price) || 0,
         description: plan.description,

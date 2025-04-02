@@ -20,7 +20,7 @@ export type UpdateTables<T extends keyof Database['public']['Tables']> = Databas
 // These will be used until the types.ts file is regenerated with the new tables
 
 // Interface for store_theme_settings table
-interface StoreThemeSettingsRow {
+export interface StoreThemeSettingsRow {
   id: string;
   mode: 'light' | 'dark' | 'system';
   primary_color: string;
@@ -33,7 +33,7 @@ interface StoreThemeSettingsRow {
   updated_at: string;
 }
 
-interface StoreThemeSettingsInsert {
+export interface StoreThemeSettingsInsert {
   id?: string;
   mode?: 'light' | 'dark' | 'system';
   primary_color?: string;
@@ -47,7 +47,7 @@ interface StoreThemeSettingsInsert {
 }
 
 // Interface for subscription_plans table
-interface SubscriptionPlanRow {
+export interface SubscriptionPlanRow {
   id: string;
   name: string;
   price: number;
@@ -59,7 +59,7 @@ interface SubscriptionPlanRow {
   updated_at: string;
 }
 
-interface SubscriptionPlanInsert {
+export interface SubscriptionPlanInsert {
   id?: string;
   name: string;
   price: number;
@@ -71,20 +71,42 @@ interface SubscriptionPlanInsert {
   updated_at?: string;
 }
 
-// Type-safe wrapper functions
-export const appSettingsTable = () => supabase.from('app_settings');
+// Type-safe wrapper functions for standard tables
+export const appSettingsTable = () => supabase.from<Tables<'app_settings'>>('app_settings');
 export type AppSetting = Tables<'app_settings'>;
 export type InsertAppSetting = InsertTables<'app_settings'>;
 export type UpdateAppSetting = UpdateTables<'app_settings'>;
 
-// Custom wrapper for subscription_plans table
-export const subscriptionPlansTable = () => supabase.from<SubscriptionPlanRow>('subscription_plans');
+// Custom wrapper for subscription_plans table with proper typing
+export const subscriptionPlansTable = () => {
+  const table = supabase.from('subscription_plans');
+  return {
+    ...table,
+    select: (columns?: string) => table.select(columns),
+    insert: (values: SubscriptionPlanInsert | SubscriptionPlanInsert[]) => table.insert(values),
+    update: (values: Partial<SubscriptionPlanInsert>) => table.update(values),
+    delete: () => table.delete(),
+    eq: (column: string, value: any) => table.eq(column, value),
+    single: () => table.single(),
+    order: (column: string, options?: {ascending?: boolean}) => table.order(column, options),
+    limit: (count: number) => table.limit(count),
+  };
+};
 export type SubscriptionPlan = SubscriptionPlanRow;
-export type InsertSubscriptionPlan = SubscriptionPlanInsert;
-export type UpdateSubscriptionPlan = Partial<SubscriptionPlanInsert>;
 
-// Custom wrapper for store_theme_settings table
-export const storeThemeSettingsTable = () => supabase.from<StoreThemeSettingsRow>('store_theme_settings');
+// Custom wrapper for store_theme_settings table with proper typing
+export const storeThemeSettingsTable = () => {
+  const table = supabase.from('store_theme_settings');
+  return {
+    ...table,
+    select: (columns?: string) => table.select(columns),
+    insert: (values: StoreThemeSettingsInsert | StoreThemeSettingsInsert[]) => table.insert(values),
+    update: (values: Partial<StoreThemeSettingsInsert>) => table.update(values),
+    delete: () => table.delete(),
+    eq: (column: string, value: any) => table.eq(column, value),
+    single: () => table.single(),
+    order: (column: string, options?: {ascending?: boolean}) => table.order(column, options),
+    limit: (count: number) => table.limit(count),
+  };
+};
 export type StoreThemeSetting = StoreThemeSettingsRow;
-export type InsertStoreThemeSetting = StoreThemeSettingsInsert;
-export type UpdateStoreThemeSetting = Partial<StoreThemeSettingsInsert>;
