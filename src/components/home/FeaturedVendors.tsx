@@ -41,9 +41,9 @@ const FeaturedVendors: React.FC<FeaturedVendorsProps> = ({
               onClick={() => navigate(`/vendor/${vendor.id}`)}
             >
               <div className="relative h-32 bg-gradient-to-r from-primary/10 to-primary/30">
-                {vendor.coverImage && (
+                {vendor.logo && (
                   <img 
-                    src={vendor.coverImage} 
+                    src={vendor.logo} 
                     alt={`${vendor.name} cover`} 
                     className="w-full h-full object-cover"
                   />
@@ -56,11 +56,9 @@ const FeaturedVendors: React.FC<FeaturedVendorsProps> = ({
                     </AvatarFallback>
                   </Avatar>
                 </div>
-                {vendor.isVerified && (
-                  <Badge className="absolute top-2 right-2 bg-green-500">
-                    <CheckCircle className="w-3 h-3 mr-1" /> Verified
-                  </Badge>
-                )}
+                <Badge className="absolute top-2 right-2 bg-green-500">
+                  <CheckCircle className="w-3 h-3 mr-1" /> Verified
+                </Badge>
               </div>
               <CardContent className="pt-10 pb-4">
                 <div className="flex justify-between items-start mb-2">
@@ -74,8 +72,8 @@ const FeaturedVendors: React.FC<FeaturedVendorsProps> = ({
                   {vendor.description || 'Quality products and excellent service from this trusted marketplace vendor.'}
                 </p>
                 <div className="flex items-center text-xs text-muted-foreground">
-                  <span className="mr-3">{vendor.productCount || '54'} Products</span>
-                  <span>{vendor.followers || '120'} Followers</span>
+                  <span className="mr-3">54 Products</span>
+                  <span>120 Followers</span>
                 </div>
               </CardContent>
             </Card>
