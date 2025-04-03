@@ -20,12 +20,18 @@ const HeroSection: React.FC = () => {
 
   return (
     <section className="relative overflow-hidden">
-      {/* Gradient background with overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-foreground to-primary/80 mix-blend-multiply opacity-90"></div>
+      {/* Hero background image */}
+      <div className="absolute inset-0 z-0">
+        <img 
+          src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=3752&h=1400&q=80" 
+          alt="Marketplace Hero" 
+          className="w-full h-full object-cover"
+        />
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70 mix-blend-multiply"></div>
+      </div>
       
-      {/* Background pattern */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMwMDAiIGZpbGwtb3BhY2l0eT0iLjAyIj48cGF0aCBkPSJNMzYgMzRoLTJ2LTRoMnY0em0wLTZ2LTRoLTJ2NGgyek0yNCAzNGgydi00aC0ydjR6bTAtMmgtNHYyaDR2LTJ6bTYtNnY0aC00di00aDR6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
-
+      {/* Content */}
       <div className="container relative mx-auto px-4 py-20 md:py-32 flex flex-col items-center">
         <div className="max-w-3xl mx-auto text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-6 animate-fade-in">

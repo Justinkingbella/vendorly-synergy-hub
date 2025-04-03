@@ -84,7 +84,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                             isActive 
-                              ? "bg-primary text-primary-foreground" 
+                              ? "bg-primary text-primary-foreground font-medium" 
                               : "hover:bg-muted"
                           }`}
                         >
@@ -99,7 +99,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                               onClick={() => setIsMobileMenuOpen(false)}
                               className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-all ${
                                 location.pathname === subItem.path 
-                                  ? "bg-primary/70 text-primary-foreground" 
+                                  ? "bg-primary/80 text-primary-foreground font-medium" 
                                   : "hover:bg-muted"
                               }`}
                             >
@@ -114,7 +114,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                           isActive 
-                            ? "bg-primary text-primary-foreground" 
+                            ? "bg-primary text-primary-foreground font-medium" 
                             : "hover:bg-muted"
                         }`}
                       >
@@ -148,7 +148,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                         to={link.path}
                         className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                           isActive 
-                            ? "bg-primary text-primary-foreground" 
+                            ? "bg-primary text-primary-foreground font-medium" 
                             : "hover:bg-muted"
                         }`}
                       >
@@ -162,7 +162,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                             to={subItem.path}
                             className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-all ${
                               location.pathname === subItem.path 
-                                ? "bg-primary/70 text-primary-foreground" 
+                                ? "bg-primary/80 text-primary-foreground font-medium" 
                                 : "hover:bg-muted"
                             }`}
                           >
@@ -176,7 +176,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                       to={link.path}
                       className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                         isActive 
-                          ? "bg-primary text-primary-foreground" 
+                          ? "bg-primary text-primary-foreground font-medium" 
                           : "hover:bg-muted"
                       }`}
                     >
