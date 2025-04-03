@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Search, ShoppingCart, User, Menu, X, ChevronDown, 
-  Heart, LogIn, CheckCircle, Moon, Sun
+  Heart, LogIn, Moon, Sun, LaptopIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { useTheme } from '@/components/ThemeProvider';
+import { Toggle } from '@/components/ui/toggle';
 
 const categories = [
   { name: 'Electronics', href: '/category/electronics' },
@@ -30,7 +31,7 @@ const categories = [
 
 export default function Navbar() {
   const { storeInfo, getActiveNavLinks } = useStoreSettings();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -62,13 +63,9 @@ export default function Navbar() {
     </Link>
   );
 
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
-
   return (
     <header className={`sticky top-0 z-40 w-full transition-all duration-300 ${
-      isScrolled ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm py-3' : 'bg-white dark:bg-gray-900 py-4'
+      isScrolled ? 'bg-background/90 backdrop-blur-md shadow-sm py-3' : 'bg-background py-4'
     }`}>
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between">
@@ -123,15 +120,36 @@ export default function Navbar() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
 
-            {/* Theme Toggle */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={toggleTheme}
-              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </Button>
+            {/* Theme Toggle Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9">
+                  {resolvedTheme === 'dark' ? (
+                    <Moon className="h-5 w-5" />
+                  ) : (
+                    <Sun className="h-5 w-5" />
+                  )}
+                  <span className="sr-only">Toggle theme</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setTheme('light')} className="flex items-center gap-2">
+                  <Sun className="h-4 w-4" />
+                  <span>Light</span>
+                  {theme === 'light' && <span className="ml-auto">✓</span>}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('dark')} className="flex items-center gap-2">
+                  <Moon className="h-4 w-4" />
+                  <span>Dark</span>
+                  {theme === 'dark' && <span className="ml-auto">✓</span>}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('system')} className="flex items-center gap-2">
+                  <LaptopIcon className="h-4 w-4" />
+                  <span>System</span>
+                  {theme === 'system' && <span className="ml-auto">✓</span>}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Cart */}
             <Button variant="ghost" size="icon" className="relative" asChild>
@@ -204,7 +222,7 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden fixed inset-x-0 top-16 bg-white dark:bg-gray-900 shadow-lg p-4 z-50 border-t">
+          <div className="md:hidden fixed inset-x-0 top-16 bg-background shadow-lg p-4 z-50 border-t">
             <div className="flex flex-col space-y-3">
               <div className="relative mb-3">
                 <Input 
@@ -239,6 +257,40 @@ export default function Navbar() {
                       {category.name}
                     </Link>
                   ))}
+                </div>
+              </div>
+              
+              {/* Theme options in mobile menu */}
+              <div className="py-2 px-3 border-t border-b border-gray-100 dark:border-gray-800">
+                <span className="font-medium mb-2 block">Theme</span>
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    variant={theme === 'light' ? 'default' : 'outline'} 
+                    onClick={() => setTheme('light')}
+                    className="flex-1"
+                  >
+                    <Sun className="mr-2 h-4 w-4" />
+                    Light
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant={theme === 'dark' ? 'default' : 'outline'} 
+                    onClick={() => setTheme('dark')}
+                    className="flex-1"
+                  >
+                    <Moon className="mr-2 h-4 w-4" />
+                    Dark
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant={theme === 'system' ? 'default' : 'outline'} 
+                    onClick={() => setTheme('system')}
+                    className="flex-1"
+                  >
+                    <LaptopIcon className="mr-2 h-4 w-4" />
+                    System
+                  </Button>
                 </div>
               </div>
               

@@ -11,6 +11,8 @@ interface ThemeProviderProps {
 interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  resolvedTheme: 'light' | 'dark'; // Always resolves to either light or dark
+  toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -18,26 +20,55 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const { themeSettings } = useStoreSettings();
   const [theme, setTheme] = useState<Theme>(themeSettings.mode);
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
+
+  // Function to toggle between light and dark mode
+  const toggleTheme = () => {
+    setTheme(prevTheme => {
+      if (prevTheme === 'light') return 'dark';
+      if (prevTheme === 'dark') return 'light';
+      // If system, toggle based on current resolved theme
+      return resolvedTheme === 'dark' ? 'light' : 'dark';
+    });
+  };
 
   useEffect(() => {
     const root = window.document.documentElement;
     
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+    // Function to detect system preference
+    const detectSystemTheme = () => {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches
         ? 'dark'
         : 'light';
-      
+    };
+
+    // Function to apply theme to document
+    const applyTheme = (newTheme: 'light' | 'dark') => {
       root.classList.remove('light', 'dark');
-      root.classList.add(systemTheme);
+      root.classList.add(newTheme);
+      setResolvedTheme(newTheme);
       
       // Apply custom CSS variables based on theme settings
-      applyThemeStyles(themeSettings, systemTheme);
+      applyThemeStyles(themeSettings, newTheme);
+    };
+
+    // Apply theme based on current setting
+    if (theme === 'system') {
+      const systemTheme = detectSystemTheme();
+      applyTheme(systemTheme);
+      
+      // Listen for system theme changes
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = () => {
+        if (theme === 'system') {
+          applyTheme(detectSystemTheme());
+        }
+      };
+      
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
     } else {
-      root.classList.remove('light', 'dark');
-      root.classList.add(theme);
-      
-      // Apply custom CSS variables based on theme settings
-      applyThemeStyles(themeSettings, theme);
+      applyTheme(theme as 'light' | 'dark');
     }
   }, [theme, themeSettings]);
 
@@ -47,7 +78,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   }, [themeSettings.mode]);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

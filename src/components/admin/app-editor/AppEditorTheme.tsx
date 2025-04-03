@@ -25,10 +25,12 @@ import {
   storeThemeSettingsTable,
   type StoreThemeSettingsInsert
 } from '@/integrations/supabase/client';
+import { useTheme } from '@/components/ThemeProvider';
 
 const AppEditorTheme = () => {
   const { toast } = useToast();
   const { themeSettings, updateThemeSettings } = useStoreSettings();
+  const { theme, setTheme } = useTheme();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [storeThemeId, setStoreThemeId] = useState<string | null>(null);
@@ -121,6 +123,7 @@ const AppEditorTheme = () => {
   
   const handleThemeChange = (mode: 'light' | 'dark' | 'system') => {
     updateThemeSettings({ mode });
+    setTheme(mode);
     toast({
       title: "Theme updated",
       description: `Theme mode set to ${mode}.`,

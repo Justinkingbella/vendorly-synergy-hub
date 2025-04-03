@@ -92,6 +92,10 @@
     @apply border-border;
   }
 
+  html, body {
+    @apply transition-colors duration-200;
+  }
+
   body {
     @apply bg-background text-foreground font-body;
   }
@@ -177,6 +181,14 @@
   .badge-outline {
     @apply border border-input text-foreground;
   }
+  
+  .theme-transition {
+    @apply transition-colors duration-200 ease-in-out;
+  }
+  
+  .glass-effect {
+    @apply bg-background/80 backdrop-blur-md border border-border/50;
+  }
 }
 
 /* Enhanced Animations */
@@ -241,4 +253,9 @@ button:focus-visible {
 /* Custom selection styling */
 ::selection {
   @apply bg-primary/20 text-foreground;
+}
+
+/* Theme transition for all elements */
+* {
+  @apply transition-colors duration-200;
 }
