@@ -3,8 +3,7 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Package, ShoppingCart, Wallet, Settings, LogOut, Menu, 
-  Bell, Search, ChevronDown, BarChart2, Store, CreditCard,
-  Moon, Sun, LaptopIcon
+  Bell, Search, ChevronDown, BarChart2, Store, CreditCard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -29,7 +28,7 @@ const VendorLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { setCustomStyles } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   
   // Check if we're in admin view mode
@@ -117,30 +116,6 @@ const VendorLayout = ({ children }: { children: React.ReactNode }) => {
           <div className="px-7 py-4">
             <div className="mb-8 flex items-center justify-between">
               <h2 className="text-lg font-bold">Vendor Panel</h2>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    {resolvedTheme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setTheme('light')}>
-                    <Sun className="mr-2 h-4 w-4" />
-                    <span>Light</span>
-                    {theme === 'light' && <span className="ml-auto">✓</span>}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTheme('dark')}>
-                    <Moon className="mr-2 h-4 w-4" />
-                    <span>Dark</span>
-                    {theme === 'dark' && <span className="ml-auto">✓</span>}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTheme('system')}>
-                    <LaptopIcon className="mr-2 h-4 w-4" />
-                    <span>System</span>
-                    {theme === 'system' && <span className="ml-auto">✓</span>}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
             <nav className="grid gap-2">
               {sidebarLinks.map((link, i) => {
@@ -200,40 +175,9 @@ const VendorLayout = ({ children }: { children: React.ReactNode }) => {
               );
             })}
           </nav>
-          {/* Theme toggle in sidebar */}
+          {/* Remove theme toggle in sidebar */}
           <div className="mt-auto p-4 border-t border-sidebar-border">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="w-full justify-between">
-                  <div className="flex items-center">
-                    {resolvedTheme === 'dark' ? (
-                      <Moon className="mr-2 h-4 w-4" />
-                    ) : (
-                      <Sun className="mr-2 h-4 w-4" />
-                    )}
-                    <span>Theme</span>
-                  </div>
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
-                <DropdownMenuItem onClick={() => setTheme('light')}>
-                  <Sun className="mr-2 h-4 w-4" />
-                  <span>Light</span>
-                  {theme === 'light' && <span className="ml-auto">✓</span>}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme('dark')}>
-                  <Moon className="mr-2 h-4 w-4" />
-                  <span>Dark</span>
-                  {theme === 'dark' && <span className="ml-auto">✓</span>}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme('system')}>
-                  <LaptopIcon className="mr-2 h-4 w-4" />
-                  <span>System</span>
-                  {theme === 'system' && <span className="ml-auto">✓</span>}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Intentionally left empty to maintain layout */}
           </div>
         </aside>
 

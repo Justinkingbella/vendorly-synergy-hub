@@ -64,7 +64,8 @@ const AppEditorTheme = () => {
             setStoreThemeId(themeData.id as string);
             // If there are settings in the database, update the context
             updateThemeSettings({
-              mode: 'light', // Always set to light mode
+              // Fixed: Cast string to specific literal type "light"
+              mode: 'light' as 'light', // Always set to light mode
               primaryColor: (themeData.primary_color as string) || '#1a6d40', // Deep green default
               secondaryColor: (themeData.secondary_color as string) || '#e6f4ea', // Light green default
               accentColor: (themeData.accent_color as string) || '#3b82f6',
@@ -90,7 +91,7 @@ const AppEditorTheme = () => {
       try {
         // Define professional default colors
         const defaultSettings = {
-          mode: 'light',
+          mode: 'light' as 'light',
           primaryColor: '#1a6d40', // Deep green
           secondaryColor: '#e6f4ea', // Light green
           accentColor: '#3b82f6',
