@@ -7,82 +7,43 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 0%; /* Changed to pure black */
+    --foreground: 0 0% 0%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%; /* Changed to pure black */
+    --card-foreground: 0 0% 0%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%; /* Changed to pure black */
+    --popover-foreground: 0 0% 0%;
 
-    --primary: 142 76% 36%; /* Green color */
-    --primary-foreground: 0 0% 100%; /* White text for better contrast */
+    --primary: 145 63% 30%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 142 30% 96.1%; /* Light green for secondary */
-    --secondary-foreground: 142 76% 36%; /* Green text on light green background */
+    --secondary: 145 40% 92%;
+    --secondary-foreground: 145 63% 30%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 0 0% 70%; /* Grey 300 for secondary text */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 142 30% 96.1%; /* Light green for accent */
-    --accent-foreground: 142 76% 36%;
+    --accent: 145 40% 92%;
+    --accent-foreground: 145 63% 30%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 142 76% 36%; /* Green ring */
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 145 63% 30%;
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 0%; /* Changed to pure black */
-    --sidebar-primary: 142 76% 36%; /* Green sidebar primary */
-    --sidebar-primary-foreground: 0 0% 100%; /* White text for contrast */
-    --sidebar-accent: 142 76% 95%; /* Light green for sidebar accent */
-    --sidebar-accent-foreground: 142 76% 36%; /* Green text on light green background */
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 142 76% 59.8%; /* Green sidebar ring */
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 142 70% 50%; /* Dark mode green */
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 142 20% 17.5%; /* Dark mode secondary green */
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 142 20% 17.5%; /* Dark mode accent green */
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 142 70% 50%; /* Dark mode green ring */
-    
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 142 70% 48%; /* Dark mode sidebar primary */
+    --sidebar-foreground: 0 0% 0%;
+    --sidebar-primary: 145 63% 30%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 142 20% 20%; /* Dark mode sidebar accent */
-    --sidebar-accent-foreground: 142 70% 60%; /* Dark mode accent text */
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 142 70% 59.8%; /* Dark mode sidebar ring */
+    --sidebar-accent: 145 40% 92%;
+    --sidebar-accent-foreground: 145 63% 30%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 145 63% 30%;
   }
 }
 
@@ -130,15 +91,15 @@
   }
 
   .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2;
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 shadow-sm font-medium;
   }
 
   .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm font-medium;
   }
 
   .btn-outline {
-    @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground;
+    @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm;
   }
 
   .card-base {
@@ -146,7 +107,7 @@
   }
 
   .nav-link {
-    @apply text-muted-foreground hover:text-foreground transition-colors;
+    @apply text-muted-foreground hover:text-foreground transition-colors font-medium;
   }
 
   .nav-link-active {
@@ -186,11 +147,10 @@
   }
   
   .glass-effect {
-    @apply bg-background/80 backdrop-blur-md border border-border/50;
+    @apply bg-white/90 backdrop-blur-sm border border-border/50 shadow-sm;
   }
 }
 
-/* Enhanced Animations */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -211,12 +171,10 @@
   to { transform: scale(1); opacity: 1; }
 }
 
-/* Better Form Controls */
 input:focus, select:focus, textarea:focus {
   @apply outline-none ring-2 ring-primary/30 border-primary;
 }
 
-/* Improved Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -230,17 +188,14 @@ input:focus, select:focus, textarea:focus {
   @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/30 transition-colors;
 }
 
-/* Better button focus */
 button:focus-visible {
   @apply outline-none ring-2 ring-primary ring-offset-2;
 }
 
-/* Improved card transitions */
 .card {
   @apply transition-all duration-300;
 }
 
-/* Add glass morphism utility */
 .glass {
   @apply bg-white/70 backdrop-blur-md border border-white/20;
 }
@@ -249,12 +204,23 @@ button:focus-visible {
   @apply bg-black/30 backdrop-blur-md border border-white/10;
 }
 
-/* Custom selection styling */
 ::selection {
   @apply bg-primary/20 text-foreground;
 }
 
-/* Theme transition for all elements */
 * {
   @apply transition-colors duration-200;
+}
+
+.hover-lift {
+  @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-md;
+}
+
+.section-container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

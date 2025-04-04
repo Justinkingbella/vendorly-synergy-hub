@@ -20,17 +20,15 @@ import {
 } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
-import { Paintbrush, Moon, Sun, Monitor, Loader2 } from 'lucide-react';
+import { Paintbrush, Loader2 } from 'lucide-react';
 import { 
   storeThemeSettingsTable,
   type StoreThemeSettingsInsert
 } from '@/integrations/supabase/client';
-import { useTheme } from '@/components/ThemeProvider';
 
 const AppEditorTheme = () => {
   const { toast } = useToast();
   const { themeSettings, updateThemeSettings } = useStoreSettings();
-  const { theme, setTheme } = useTheme();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [storeThemeId, setStoreThemeId] = useState<string | null>(null);
@@ -57,7 +55,6 @@ const AppEditorTheme = () => {
           
           // Safely check if the required properties exist
           if ('id' in themeData && 
-              'mode' in themeData && 
               'primary_color' in themeData && 
               'secondary_color' in themeData && 
               'accent_color' in themeData && 
@@ -67,9 +64,9 @@ const AppEditorTheme = () => {
             setStoreThemeId(themeData.id as string);
             // If there are settings in the database, update the context
             updateThemeSettings({
-              mode: (themeData.mode as 'light' | 'dark' | 'system') || 'light',
-              primaryColor: (themeData.primary_color as string) || '#000000',
-              secondaryColor: (themeData.secondary_color as string) || '#ffffff',
+              mode: 'light', // Always set to light mode
+              primaryColor: (themeData.primary_color as string) || '#1a6d40', // Deep green default
+              secondaryColor: (themeData.secondary_color as string) || '#e6f4ea', // Light green default
               accentColor: (themeData.accent_color as string) || '#3b82f6',
               fontFamily: (themeData.font_family as string) || 'Inter, sans-serif',
               borderRadius: (themeData.border_radius as string) || '0.5rem',
@@ -91,14 +88,28 @@ const AppEditorTheme = () => {
 
     const createDefaultThemeSettings = async () => {
       try {
+        // Define professional default colors
+        const defaultSettings = {
+          mode: 'light',
+          primaryColor: '#1a6d40', // Deep green
+          secondaryColor: '#e6f4ea', // Light green
+          accentColor: '#3b82f6',
+          fontFamily: 'Inter, sans-serif',
+          borderRadius: '0.5rem',
+          customCss: '',
+        };
+        
+        // Update the context with professional defaults
+        updateThemeSettings(defaultSettings);
+        
         const themeData: StoreThemeSettingsInsert = {
-          mode: themeSettings.mode,
-          primary_color: themeSettings.primaryColor,
-          secondary_color: themeSettings.secondaryColor,
-          accent_color: themeSettings.accentColor,
-          font_family: themeSettings.fontFamily,
-          border_radius: themeSettings.borderRadius,
-          custom_css: themeSettings.customCss,
+          mode: defaultSettings.mode,
+          primary_color: defaultSettings.primaryColor,
+          secondary_color: defaultSettings.secondaryColor,
+          accent_color: defaultSettings.accentColor,
+          font_family: defaultSettings.fontFamily,
+          border_radius: defaultSettings.borderRadius,
+          custom_css: defaultSettings.customCss,
         };
         
         const { data, error } = await storeThemeSettingsTable()
@@ -121,15 +132,6 @@ const AppEditorTheme = () => {
     fetchThemeSettings();
   }, []);
   
-  const handleThemeChange = (mode: 'light' | 'dark' | 'system') => {
-    updateThemeSettings({ mode });
-    setTheme(mode);
-    toast({
-      title: "Theme updated",
-      description: `Theme mode set to ${mode}.`,
-    });
-  };
-  
   const handleColorChange = (colorType: 'primaryColor' | 'secondaryColor' | 'accentColor', value: string) => {
     updateThemeSettings({ [colorType]: value });
   };
@@ -139,7 +141,7 @@ const AppEditorTheme = () => {
       setIsSaving(true);
       
       const themeData: StoreThemeSettingsInsert = {
-        mode: themeSettings.mode,
+        mode: 'light', // Always light mode
         primary_color: themeSettings.primaryColor,
         secondary_color: themeSettings.secondaryColor,
         accent_color: themeSettings.accentColor,
@@ -207,46 +209,13 @@ const AppEditorTheme = () => {
       <CardHeader>
         <CardTitle>Theme Settings</CardTitle>
         <CardDescription>
-          Customize your store's appearance with theme options
+          Customize your store's appearance with professional theme options
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label>Theme Mode</Label>
-          <div className="flex items-center space-x-2">
-            <Button 
-              variant={themeSettings.mode === 'light' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => handleThemeChange('light')}
-              className="flex items-center"
-            >
-              <Sun className="h-4 w-4 mr-2" />
-              Light
-            </Button>
-            <Button 
-              variant={themeSettings.mode === 'dark' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => handleThemeChange('dark')}
-              className="flex items-center"
-            >
-              <Moon className="h-4 w-4 mr-2" />
-              Dark
-            </Button>
-            <Button 
-              variant={themeSettings.mode === 'system' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => handleThemeChange('system')}
-              className="flex items-center"
-            >
-              <Monitor className="h-4 w-4 mr-2" />
-              System
-            </Button>
-          </div>
-        </div>
-        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="primaryColor">Primary Color</Label>
+            <Label htmlFor="primaryColor">Primary Color (Deep Green)</Label>
             <div className="flex items-center space-x-2">
               <div 
                 className="w-8 h-8 rounded-full border"
@@ -263,7 +232,7 @@ const AppEditorTheme = () => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="secondaryColor">Secondary Color</Label>
+            <Label htmlFor="secondaryColor">Secondary Color (Light Green)</Label>
             <div className="flex items-center space-x-2">
               <div 
                 className="w-8 h-8 rounded-full border"

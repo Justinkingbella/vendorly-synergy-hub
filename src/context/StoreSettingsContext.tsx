@@ -349,9 +349,9 @@ const defaultMarketingBanners: MarketingBanner[] = [
 
 const defaultThemeSettings: ThemeSettings = {
   mode: 'light',
-  primaryColor: '#0284c7',
-  secondaryColor: '#f97316',
-  accentColor: '#8b5cf6',
+  primaryColor: '#1a6d40', // Deep green
+  secondaryColor: '#e6f4ea', // Light green
+  accentColor: '#3b82f6',
   fontFamily: 'Inter, sans-serif',
   borderRadius: '0.5rem',
   customCss: ''

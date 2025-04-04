@@ -1,95 +1,63 @@
+
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
-
-type Theme = 'light' | 'dark' | 'system';
 
 interface ThemeProviderProps {
   children: ReactNode;
 }
 
 interface ThemeContextType {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
-  resolvedTheme: 'light' | 'dark'; // Always resolves to either light or dark
-  toggleTheme: () => void;
+  setCustomStyles: (styles: Record<string, string>) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const { themeSettings } = useStoreSettings();
-  const [theme, setTheme] = useState<Theme>(themeSettings.mode);
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
-
-  // Function to toggle between light and dark mode
-  const toggleTheme = () => {
-    setTheme(prevTheme => {
-      if (prevTheme === 'light') return 'dark';
-      if (prevTheme === 'dark') return 'light';
-      // If system, toggle based on current resolved theme
-      return resolvedTheme === 'dark' ? 'light' : 'dark';
-    });
-  };
+  const [customStyles, setCustomStyles] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const root = window.document.documentElement;
     
-    // Function to detect system preference
-    const detectSystemTheme = () => {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
-    };
+    // Always apply light theme
+    root.classList.remove('dark');
+    root.classList.add('light');
+    
+    // Apply theme styles based on theme settings
+    applyThemeStyles(themeSettings);
+  }, [themeSettings]);
 
-    // Function to apply theme to document
-    const applyTheme = (newTheme: 'light' | 'dark') => {
-      root.classList.remove('light', 'dark');
-      root.classList.add(newTheme);
-      setResolvedTheme(newTheme);
-      
-      // Apply custom CSS variables based on theme settings
-      applyThemeStyles(themeSettings, newTheme);
-    };
-
-    // Apply theme based on current setting
-    if (theme === 'system') {
-      const systemTheme = detectSystemTheme();
-      applyTheme(systemTheme);
-      
-      // Listen for system theme changes
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const handleChange = () => {
-        if (theme === 'system') {
-          applyTheme(detectSystemTheme());
-        }
-      };
-      
-      mediaQuery.addEventListener('change', handleChange);
-      return () => mediaQuery.removeEventListener('change', handleChange);
-    } else {
-      applyTheme(theme as 'light' | 'dark');
-    }
-  }, [theme, themeSettings]);
-
-  // Update theme when theme settings change
+  // Apply custom styles when they change
   useEffect(() => {
-    setTheme(themeSettings.mode);
-  }, [themeSettings.mode]);
+    const root = document.documentElement;
+    
+    // Apply each style in the customStyles object
+    Object.entries(customStyles).forEach(([property, value]) => {
+      root.style.setProperty(property, value);
+    });
+    
+    return () => {
+      // Clean up custom styles when component unmounts
+      Object.keys(customStyles).forEach(property => {
+        root.style.removeProperty(property);
+      });
+    };
+  }, [customStyles]);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme, toggleTheme }}>
+    <ThemeContext.Provider value={{ setCustomStyles }}>
       {children}
     </ThemeContext.Provider>
   );
 }
 
-function applyThemeStyles(themeSettings: any, currentTheme: 'light' | 'dark') {
+function applyThemeStyles(themeSettings: any) {
   const root = document.documentElement;
   
-  // Set the primary color
+  // Set the primary color (deep green)
   root.style.setProperty('--primary', themeSettings.primaryColor);
   
-  // Set the secondary color
+  // Set the secondary color (light green)
   root.style.setProperty('--secondary', themeSettings.secondaryColor);
   
   // Set the accent color
@@ -101,16 +69,9 @@ function applyThemeStyles(themeSettings: any, currentTheme: 'light' | 'dark') {
   // Set the font family
   root.style.setProperty('--font-family', themeSettings.fontFamily);
   
-  // Apply custom color overrides based on theme
-  if (currentTheme === 'light') {
-    // Light mode - black main text, grey secondary text
-    root.style.setProperty('--foreground-color-override', 'hsl(0, 0%, 0%)');
-    root.style.setProperty('--muted-foreground-color-override', 'hsl(0, 0%, 70%)');
-  } else {
-    // Dark mode - keep default dark mode colors
-    root.style.removeProperty('--foreground-color-override');
-    root.style.removeProperty('--muted-foreground-color-override');
-  }
+  // Set text colors
+  root.style.setProperty('--foreground-color', 'hsl(0, 0%, 0%)');
+  root.style.setProperty('--muted-foreground-color', 'hsl(0, 0%, 45%)');
   
   // Apply custom CSS if available
   if (themeSettings.customCss) {
