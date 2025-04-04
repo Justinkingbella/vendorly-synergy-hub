@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
 
@@ -101,6 +100,17 @@ function applyThemeStyles(themeSettings: any, currentTheme: 'light' | 'dark') {
   
   // Set the font family
   root.style.setProperty('--font-family', themeSettings.fontFamily);
+  
+  // Apply custom color overrides based on theme
+  if (currentTheme === 'light') {
+    // Light mode - black main text, grey secondary text
+    root.style.setProperty('--foreground-color-override', 'hsl(0, 0%, 0%)');
+    root.style.setProperty('--muted-foreground-color-override', 'hsl(0, 0%, 70%)');
+  } else {
+    // Dark mode - keep default dark mode colors
+    root.style.removeProperty('--foreground-color-override');
+    root.style.removeProperty('--muted-foreground-color-override');
+  }
   
   // Apply custom CSS if available
   if (themeSettings.customCss) {
